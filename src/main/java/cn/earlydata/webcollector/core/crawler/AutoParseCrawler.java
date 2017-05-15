@@ -78,9 +78,6 @@ public abstract class AutoParseCrawler extends Crawler implements Executor, Visi
 
     public void execute(CrawlDatum datum, CrawlDatums next) throws Exception {
         long sleepTime = 2000L;
-        if (datum.getMetaData().containsKey("sleepTime")) {
-            sleepTime = Long.parseLong(datum.meta("sleepTime").toString());
-        }
         Thread.sleep(sleepTime);
         HttpResponse response = requester.getHttpResponse(datum);
         Page page = new Page(datum, response);

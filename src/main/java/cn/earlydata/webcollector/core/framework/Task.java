@@ -1,10 +1,13 @@
 package cn.earlydata.webcollector.core.framework;
 
 import cn.earlydata.webcollector.common.CrawlerAttribute;
-import cn.earlydata.webcollector.core.crawler.Crawler;
+import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
+import cn.earlydata.webcollector.task.AmazonTask;
 import org.apache.log4j.Logger;
+
 import java.util.Collection;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -15,9 +18,9 @@ public class Task {
 
     private Logger LOG = Logger.getLogger(Task.class);
     private BerkeleyDBManager berkeleyDBManager;
-
-    public Task(DBManager dbManager){
-        this.berkeleyDBManager = (BerkeleyDBManager)dbManager;
+    private static int retryTimes = 0;
+    public Task(DBManager dbManager) {
+        this.berkeleyDBManager = (BerkeleyDBManager) dbManager;
     }
 
     public void doExecute(Collection<Runnable> runnableArrayList, String taskName) {
@@ -28,17 +31,29 @@ public class Task {
                 pool.execute(runnable);
             }
             pool.shutdown();
-            while(true){
-                if(pool.isTerminated()){
-                    System.out.println(berkeleyDBManager);
-                    berkeleyDBManager.list(CrawlerAttribute.ERRORDB_NAME);
-                    LOG.info("ExecutorService finished");
-                    break;
+            while (true) {
+                if (pool.isTerminated()) {
+                    List<CrawlDatum> crawlDatumList =
+                            berkeleyDBManager.list(CrawlerAttribute.ERRORDB_NAME,taskName);
+                    if (crawlDatumList.size() > 0 && retryTimes < 5) {
+                        String databaseName = CrawlerAttribute.AMAZON_TASK + "_error_" + retryTimes;
+                        berkeleyDBManager.clear(databaseName);
+                        Object obj = Class.forName(CrawlerAttribute.TASKCLASS_PACKAGE + taskName).newInstance();
+                        if (taskName.equals(CrawlerAttribute.AMAZON_TASK)) {
+                            retryTimes++;
+                            AmazonTask amazonTask = (AmazonTask) obj;
+                            LOG.info("retry times : " + retryTimes);
+                            amazonTask.taskRun(crawlDatumList,databaseName);
+                        }
+                    }else{
+                        LOG.info("ExecutorService finished");
+                        break;
+                    }
                 }
                 Thread.sleep(1000);
             }
             final long end = System.currentTimeMillis();
-            LOG.info(taskName + " ExecutorService cost time :" + (end-start)/1000);
+            LOG.info(taskName + " ExecutorService cost time :" + (end - start) / 1000);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage());
         } catch (Exception e) {

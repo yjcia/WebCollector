@@ -31,14 +31,12 @@ public class CrawlDatum implements Serializable {
     public final static int STATUS_DB_UNEXECUTED = 0;
     public final static int STATUS_DB_FAILED = 1;
     public final static int STATUS_DB_SUCCESS = 5;
-    //爬取成功标志位
     public boolean crawlSuccess = true;
-
     private String url = null;
     private long executeTime = System.currentTimeMillis();
-
     private int status = STATUS_DB_UNEXECUTED;
     private int executeCount = 0;
+    public static final String META_KEY_TYPE = "s_t";
     /**
      * 在WebCollector 2.5之后，不再根据URL去重，而是根据key去重
      * 可以通过getKey()方法获得CrawlDatum的key,如果key为null,getKey()方法会返回URL
@@ -59,16 +57,16 @@ public class CrawlDatum implements Serializable {
     public CrawlDatum(String url) {
         this.url = url;
     }
-    
-     public CrawlDatum(String url,String type) {
+
+    public CrawlDatum(String url, String type) {
         this.url = url;
         type(type);
     }
-     
-    public boolean matchType(String type){
-        if(type==null){
-            return type()==null;
-        }else{
+
+    public boolean matchType(String type) {
+        if (type == null) {
+            return type() == null;
+        } else {
             return type.equals(type());
         }
     }
@@ -86,18 +84,16 @@ public class CrawlDatum implements Serializable {
 
 
     public int incrExecuteCount(int count) {
-        executeCount+=count;
+        executeCount += count;
         return executeCount;
     }
 
 
-    public static final String META_KEY_TYPE="s_t";
-    
-    public Object type(){
+    public Object type() {
         return meta(META_KEY_TYPE);
     }
-    
-    public CrawlDatum type(String type){
+
+    public CrawlDatum type(String type) {
         return meta(META_KEY_TYPE, type);
     }
 
@@ -105,7 +101,7 @@ public class CrawlDatum implements Serializable {
     public String url() {
         return url;
     }
-    
+
     public CrawlDatum url(String url) {
         this.url = url;
         return this;
@@ -143,26 +139,24 @@ public class CrawlDatum implements Serializable {
         this.metaData = metaData;
     }
 
-
-
-    public CrawlDatum meta(String key,String value){
+    public CrawlDatum meta(String key, String value) {
         this.metaData.put(key, value);
         return this;
     }
 
-    public Object meta(String key){
+    public Object meta(String key) {
         return this.metaData.get(key);
     }
 
-     public String key() {
+    public String key() {
         if (key == null) {
             return url;
         } else {
             return key;
         }
     }
-     
-     public CrawlDatum key(String key) {
+
+    public CrawlDatum key(String key) {
         this.key = key;
         return this;
     }

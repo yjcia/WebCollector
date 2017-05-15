@@ -10,6 +10,7 @@ public class CrawlerAttribute {
     public static final String STATUS_ON = "1"; // 上架状态
     public static final String STATUS_OFF = "0";// 下架状态
     public static final String PLATFORM_AMAZON = "amazon";
+    public static final String AMAZON_TASK = "AmazonTask";
     public static final String CUST_KEY_WORD_ID = "custKeyWordId";
     public static final String AMAZON_ITEM_ID = "amazonItemId";
     public static final String AMAZON_SHOP_ID = "5";
@@ -35,4 +36,5 @@ public class CrawlerAttribute {
     public static final String LINKDB_NAME = "link";
     public static final String FENTCHDB_NAME = "fentch";
     public static final String UTF8 = "utf-8";
+    public static final String TASKCLASS_PACKAGE = "cn.earlydata.webcollector.task.";
 }

@@ -49,6 +49,7 @@ public class Crawler {
     protected int maxExecuteCount = -1;
     protected Executor executor = null;
     protected DBManager dbManager;
+    private String crawlerTaskName;
 
     public Crawler() {}
 
@@ -115,6 +116,7 @@ public class Crawler {
             fetcher.setDBManager(dbManager);
             fetcher.setExecutor(executor);
             fetcher.setThreads(threads);
+            fetcher.setTaskName(crawlerTaskName);
             fetcher.setExecuteInterval(executeInterval);
             fetcher.fetchAll(generator);
             long endTime = System.currentTimeMillis();
@@ -125,7 +127,7 @@ public class Crawler {
                 break;
             }
         }
-        dbManager.close();
+        //dbManager.close();
     }
 
     /**
@@ -377,5 +379,13 @@ public class Crawler {
 
     public void setParamMap(Map<String, Object> paramMap) {
         this.paramMap = paramMap;
+    }
+
+    public String getCrawlerTaskName() {
+        return crawlerTaskName;
+    }
+
+    public void setCrawlerTaskName(String crawlerTaskName) {
+        this.crawlerTaskName = crawlerTaskName;
     }
 }

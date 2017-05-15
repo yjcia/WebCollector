@@ -48,6 +48,7 @@ public class Fetcher {
     private FetchQueue fetchQueue;
     private long executeInterval = 0;
     private int threads = 50;
+    private String taskName;
     public volatile boolean running;
 
     public Executor getExecutor() {
@@ -257,7 +258,7 @@ public class Fetcher {
             for (int i = 0; i < threads; i++) {
                 runnableArrayList.add(new FetcherThread());
             }
-            new Task(dbManager).doExecute(runnableArrayList, CrawlerAttribute.PLATFORM_AMAZON);
+            new Task(dbManager).doExecute(runnableArrayList,taskName);
             do {
                 try {
                     Thread.sleep(1000);
@@ -360,4 +361,11 @@ public class Fetcher {
         this.executeInterval = executeInterval;
     }
 
+    public String getTaskName() {
+        return taskName;
+    }
+
+    public void setTaskName(String taskName) {
+        this.taskName = taskName;
+    }
 }

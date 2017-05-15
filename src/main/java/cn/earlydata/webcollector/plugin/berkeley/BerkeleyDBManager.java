@@ -58,27 +58,29 @@ public class BerkeleyDBManager implements DBManager {
         errorDatabase = env.openDatabase(null, CrawlerAttribute.ERRORDB_NAME, defaultDBConfig);
     }
 
-    public List<CrawlDatum> list(String databaseName) {
-        List<CrawlDatum> crawlDatumList = null;
+    public List<CrawlDatum> list(String databaseName,String keyPrefix) {
+        List<CrawlDatum> crawlDatumList = new ArrayList<>();
         try {
             if (env == null) {
                 open();
-                Database crawldbDatabase = env.openDatabase(null, databaseName, defaultDBConfig);
-                cursor = crawldbDatabase.openCursor(null, CursorConfig.DEFAULT);
-                DatabaseEntry key = new DatabaseEntry();
-                DatabaseEntry value = new DatabaseEntry();
-                while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                    try {
-                        crawlDatumList = new ArrayList<>();
-                        CrawlDatum datum = createCrawlDatum(key, value);
+            }
+            Database crawldbDatabase = env.openDatabase(null, databaseName, defaultDBConfig);
+            cursor = crawldbDatabase.openCursor(null, CursorConfig.DEFAULT);
+            DatabaseEntry key = new DatabaseEntry();
+            DatabaseEntry value = new DatabaseEntry();
+            while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                try {
+                    CrawlDatum datum = createCrawlDatum(key, value);
+                    if(datum.key().startsWith(keyPrefix)){
                         crawlDatumList.add(datum);
-                        LOG.info(CrawlDatumFormater.datumToString(datum));
-                    } catch (Exception ex) {
-                        LOG.info("Exception when generating", ex);
-                        continue;
                     }
+
+                } catch (Exception ex) {
+                    LOG.info("Exception when generating", ex);
+                    continue;
                 }
             }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,7 +88,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     @Override
-    public void save(String databaseName, CrawlDatum datum, boolean force){
+    public void save(String databaseName, CrawlDatum datum, boolean force) {
         Database database = env.openDatabase(null, databaseName, defaultDBConfig);
         DatabaseEntry key = null;
         try {
@@ -184,7 +186,7 @@ public class BerkeleyDBManager implements DBManager {
 
 
     @Override
-    public void open(){
+    public void open() {
         File dir = new File(crawlPath);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -318,6 +320,14 @@ public class BerkeleyDBManager implements DBManager {
         }
     }
 
+    public void clear(String databaseName) {
+        File dir = new File(databaseName);
+        if (dir.exists()) {
+            FileUtils.deleteDir(dir);
+        }
+    }
+
+
     @Override
     public void close(Database database) {
         if (database != null) {
@@ -337,6 +347,9 @@ public class BerkeleyDBManager implements DBManager {
 
     @Override
     public Generator getGenerator() {
+        if(generator == null){
+            generator = new BerkeleyGenerator();
+        }
         generator.setEnv(env);
         return generator;
     }

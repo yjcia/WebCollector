@@ -17,6 +17,7 @@
  */
 package cn.earlydata.webcollector.core.crawler;
 
+import cn.earlydata.webcollector.core.framework.DBManager;
 import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
 import org.springframework.stereotype.Component;
 
@@ -49,6 +50,12 @@ public abstract class BreadthCrawler extends AutoParseCrawler {
      * @param autoParse 是否根据设置的正则自动探测新URL
      */
     public void initCrawler(String crawlPath, boolean autoParse){
+        super.initCrawler(autoParse);
+        berkeleyDBManager.setCrawlPath(crawlPath);
+        this.dbManager = berkeleyDBManager;
+    }
+
+    public void initCrawler(String crawlPath, boolean autoParse, BerkeleyDBManager berkeleyDBManager){
         super.initCrawler(autoParse);
         berkeleyDBManager.setCrawlPath(crawlPath);
         this.dbManager = berkeleyDBManager;

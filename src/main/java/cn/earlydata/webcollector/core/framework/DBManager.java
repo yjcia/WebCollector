@@ -38,7 +38,7 @@ public interface DBManager extends SegmentWriter {
 
     void close();
 
-    List<CrawlDatum> list(String databaseName);
+    List<CrawlDatum> list(String databaseName,String keyPrefix);
 
     void save(String databaseName,CrawlDatum datum, boolean force);
 
