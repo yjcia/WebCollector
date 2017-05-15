@@ -20,7 +20,6 @@ package cn.earlydata.webcollector.core.framework;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.common.Config;
-import cn.earlydata.webcollector.util.TaskUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -219,7 +218,6 @@ public class Fetcher {
                         LOG.info("Exception", ex);
                     }
                 }
-
             } catch (Exception ex) {
                 LOG.info("Exception", ex);
             } finally {
@@ -258,7 +256,7 @@ public class Fetcher {
             for (int i = 0; i < threads; i++) {
                 runnableArrayList.add(new FetcherThread());
             }
-            TaskUtil.doExecute(runnableArrayList,"FetchTask");
+            new Task(dbManager).doExecute(runnableArrayList,"FetchTask");
             do {
                 try {
                     Thread.sleep(1000);

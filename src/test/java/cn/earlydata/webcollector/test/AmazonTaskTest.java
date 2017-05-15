@@ -28,6 +28,7 @@ public class AmazonTaskTest {
     public void testAmazonTask(){
         try {
             amazonTask.taskInit("crawlPath",false);
+            amazonTask.taskRun();
             System.out.println("-----" + berkeleyDBManager);
 
         } catch (Exception e) {

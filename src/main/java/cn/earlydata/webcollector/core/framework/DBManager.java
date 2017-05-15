@@ -22,29 +22,33 @@ import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import com.sleepycat.je.Database;
 
+import java.util.List;
+
 public interface DBManager extends SegmentWriter {
 
     boolean isDBExists();
 
-    void clear() throws Exception;
+    void clear();
 
     Generator getGenerator();
 
-    void open() throws Exception;
+    void open();
 
-    void close(Database database) throws Exception;
+    void close(Database database);
 
-    void close() throws Exception;
+    void close();
 
-    void save(String databaseName,CrawlDatum datum, boolean force) throws Exception;
+    List<CrawlDatum> list(String databaseName);
 
-    void save(String databaseName,CrawlDatums datums, boolean force) throws Exception;
+    void save(String databaseName,CrawlDatum datum, boolean force);
 
-    void save(String databaseName,CrawlDatums datums) throws Exception;
+    void save(String databaseName,CrawlDatums datums, boolean force);
 
-    void merge() throws Exception;
+    void save(String databaseName,CrawlDatums datums);
 
-    CrawlDatum findFromDatabase(String key, String databaseName) throws Exception;
+    void merge();
+
+    CrawlDatum findFromDatabase(String key, String databaseName);
 
     boolean deleteFromDatabase(String key, String databaseName);
 

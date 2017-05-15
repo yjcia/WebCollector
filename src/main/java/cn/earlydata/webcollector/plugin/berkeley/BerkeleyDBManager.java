@@ -13,6 +13,8 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Berkeley DB 操作类
@@ -49,71 +51,90 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     @Override
-    public void initSegmentWriter() throws Exception {
+    public void initSegmentWriter() {
         fetchDatabase = env.openDatabase(null, "fetch", defaultDBConfig);
         linkDatabase = env.openDatabase(null, "link", defaultDBConfig);
         errorDatabase = env.openDatabase(null, "error", defaultDBConfig);
     }
 
-    public void list(String databaseName) throws Exception {
-        if (env == null) {
-            open();
-        }
-        Database crawldbDatabase = env.openDatabase(null, databaseName, defaultDBConfig);
-        cursor = crawldbDatabase.openCursor(null, CursorConfig.DEFAULT);
-        DatabaseEntry key = new DatabaseEntry();
-        DatabaseEntry value = new DatabaseEntry();
-        while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-            try {
-                CrawlDatum datum = createCrawlDatum(key, value);
-                System.out.println(CrawlDatumFormater.datumToString(datum));
-            } catch (Exception ex) {
-                LOG.info("Exception when generating", ex);
-                continue;
+    public List<CrawlDatum> list(String databaseName) {
+        List<CrawlDatum> crawlDatumList = null;
+        try {
+            if (env == null) {
+                open();
+                Database crawldbDatabase = env.openDatabase(null, databaseName, defaultDBConfig);
+                cursor = crawldbDatabase.openCursor(null, CursorConfig.DEFAULT);
+                DatabaseEntry key = new DatabaseEntry();
+                DatabaseEntry value = new DatabaseEntry();
+                while (cursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                    try {
+                        crawlDatumList = new ArrayList<>();
+                        CrawlDatum datum = createCrawlDatum(key, value);
+                        crawlDatumList.add(datum);
+                        LOG.info(CrawlDatumFormater.datumToString(datum));
+                    } catch (Exception ex) {
+                        LOG.info("Exception when generating", ex);
+                        continue;
+                    }
+                }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return crawlDatumList;
     }
 
     @Override
-    public void save(String databaseName, CrawlDatum datum, boolean force) throws Exception {
+    public void save(String databaseName, CrawlDatum datum, boolean force){
         Database database = env.openDatabase(null, databaseName, defaultDBConfig);
-        DatabaseEntry key = strToEntry(datum.key());
-        DatabaseEntry value = new DatabaseEntry();
-        if (!force) {
-            if (database.get(null, key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                database.close();
-                return;
-            }
-        }
-        value = strToEntry(CrawlDatumFormater.datumToJsonStr(datum));
-        database.put(null, key, value);
-        database.close();
-    }
-
-    @Override
-    public void save(String databaseName, CrawlDatums datums, boolean force) throws Exception {
-        Database database = env.openDatabase(null, databaseName, defaultDBConfig);
-        for (int i = 0; i < datums.size(); i++) {
-            CrawlDatum datum = datums.get(i);
-            DatabaseEntry key = strToEntry(datum.key());
+        DatabaseEntry key = null;
+        try {
+            key = strToEntry(datum.key());
             DatabaseEntry value = new DatabaseEntry();
             if (!force) {
                 if (database.get(null, key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
-                    continue;
+                    database.close();
+                    return;
                 }
             }
             value = strToEntry(CrawlDatumFormater.datumToJsonStr(datum));
             database.put(null, key, value);
+            database.close();
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Override
+    public void save(String databaseName, CrawlDatums datums, boolean force) {
+        Database database = env.openDatabase(null, databaseName, defaultDBConfig);
+        try {
+            for (int i = 0; i < datums.size(); i++) {
+                CrawlDatum datum = datums.get(i);
+                DatabaseEntry key = null;
+                key = strToEntry(datum.key());
+                DatabaseEntry value = new DatabaseEntry();
+                if (!force) {
+                    if (database.get(null, key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
+                        continue;
+                    }
+                }
+                value = strToEntry(CrawlDatumFormater.datumToJsonStr(datum));
+                database.put(null, key, value);
+            }
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
         database.close();
     }
 
     @Override
-    public void save(String databaseName, CrawlDatums datums) throws Exception {
+    public void save(String databaseName, CrawlDatums datums) {
         save(databaseName, datums, false);
     }
 
-    public void merge() throws Exception {
+    public void merge() {
         LOG.info("start merge");
         Database crawldbDatabase = env.openDatabase(null, "crawldb", defaultDBConfig);
         /*合并fetch库*/
@@ -162,7 +183,7 @@ public class BerkeleyDBManager implements DBManager {
 
 
     @Override
-    public void open() throws Exception {
+    public void open(){
         File dir = new File(crawlPath);
         if (!dir.exists()) {
             dir.mkdirs();
@@ -172,10 +193,16 @@ public class BerkeleyDBManager implements DBManager {
         env = new Environment(dir, environmentConfig);
     }
 
-    public static CrawlDatum createCrawlDatum(DatabaseEntry key, DatabaseEntry value) throws Exception {
-        String datumKey = new String(key.getData(), "utf-8");
-        String valueStr = new String(value.getData(), "utf-8");
-        return CrawlDatumFormater.jsonStrToDatum(datumKey, valueStr);
+    public static CrawlDatum createCrawlDatum(DatabaseEntry key, DatabaseEntry value) {
+        String datumKey = null;
+        try {
+            datumKey = new String(key.getData(), "utf-8");
+            String valueStr = new String(value.getData(), "utf-8");
+            return CrawlDatumFormater.jsonStrToDatum(datumKey, valueStr);
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 
     public void writeDatumToDatabase(Database database, CrawlDatum datum) throws Exception {
@@ -203,11 +230,11 @@ public class BerkeleyDBManager implements DBManager {
         writeDatumToDatabase(errorDatabase, errorDatum);
     }
 
-    public CrawlDatum findFromDatabase(String key, String databaseName) throws Exception {
-        DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
-        DatabaseEntry theData = new DatabaseEntry();
-        Database database = env.openDatabase(null, databaseName, defaultDBConfig);
+    public CrawlDatum findFromDatabase(String key, String databaseName) {
         try {
+            DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
+            DatabaseEntry theData = new DatabaseEntry();
+            Database database = env.openDatabase(null, databaseName, defaultDBConfig);
             if (database.get(null, theKey, theData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
                 CrawlDatum datum = BerkeleyDBManager.createCrawlDatum(theKey, theData);
                 return datum;
@@ -215,9 +242,12 @@ public class BerkeleyDBManager implements DBManager {
                 return null;
             }
         } catch (LockConflictException lockConflict) {
-            LOG.error("从数据库" + database.getDatabaseName() + "中读取:" + key + "出现lock异常");
+            LOG.error("从数据库" + databaseName + "中读取:" + key + "出现lock异常");
             return null;
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
         }
+        return null;
     }
 
     public boolean deleteFromDatabase(String key, String databaseName) {
@@ -260,7 +290,7 @@ public class BerkeleyDBManager implements DBManager {
 
 
     @Override
-    public void closeSegmentWriter() throws Exception {
+    public void closeSegmentWriter() {
         if (fetchDatabase != null) {
             fetchDatabase.close();
         }
@@ -280,7 +310,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     @Override
-    public void clear() throws Exception {
+    public void clear() {
         File dir = new File(crawlPath);
         if (dir.exists()) {
             FileUtils.deleteDir(dir);
@@ -288,7 +318,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     @Override
-    public void close(Database database) throws Exception {
+    public void close(Database database) {
         if (database != null) {
             database.close();
         }
@@ -298,7 +328,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     @Override
-    public void close() throws Exception {
+    public void close() {
         if (env != null) {
             env.close();
         }

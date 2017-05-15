@@ -1,7 +1,7 @@
-package cn.earlydata.webcollector.util;
+package cn.earlydata.webcollector.core.framework;
 
+import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
 import org.apache.log4j.Logger;
-
 import java.util.Collection;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -9,9 +9,16 @@ import java.util.concurrent.Executors;
 /**
  * Created by YanJun on 2017/5/15.
  */
-public class TaskUtil {
-    private static Logger LOG = Logger.getLogger(TaskUtil.class);
-    public static void doExecute(Collection<Runnable> runnableArrayList, String taskName) {
+public class Task {
+
+    private Logger LOG = Logger.getLogger(Task.class);
+    private BerkeleyDBManager berkeleyDBManager;
+
+    public Task(DBManager dbManager){
+        this.berkeleyDBManager = (BerkeleyDBManager)dbManager;
+    }
+
+    public void doExecute(Collection<Runnable> runnableArrayList, String taskName) {
         try {
             final long start = System.currentTimeMillis();
             ExecutorService pool = Executors.newFixedThreadPool(50);
@@ -19,9 +26,10 @@ public class TaskUtil {
                 pool.execute(runnable);
             }
             pool.shutdown();
-            //判断线程池中子线程是否都执行完毕
             while(true){
                 if(pool.isTerminated()){
+                    System.out.println(berkeleyDBManager);
+                    berkeleyDBManager.list("error");
                     LOG.info("ExecutorService finished");
                     break;
                 }
@@ -31,6 +39,8 @@ public class TaskUtil {
             LOG.info(taskName + " ExecutorService cost time :" + (end-start)/1000);
         } catch (InterruptedException e) {
             LOG.error(e.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
