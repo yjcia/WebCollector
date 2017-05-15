@@ -17,6 +17,7 @@
  */
 package cn.earlydata.webcollector.core.framework;
 
+import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.common.Config;
@@ -256,7 +257,7 @@ public class Fetcher {
             for (int i = 0; i < threads; i++) {
                 runnableArrayList.add(new FetcherThread());
             }
-            new Task(dbManager).doExecute(runnableArrayList,"FetchTask");
+            new Task(dbManager).doExecute(runnableArrayList, CrawlerAttribute.PLATFORM_AMAZON);
             do {
                 try {
                     Thread.sleep(1000);

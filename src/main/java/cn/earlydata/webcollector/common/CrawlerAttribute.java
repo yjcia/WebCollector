@@ -4,22 +4,8 @@ package cn.earlydata.webcollector.common;
  * Created by Yanjun on 2017/04/18.
  */
 public class CrawlerAttribute {
-    public static final String CHROME_WEBDRIVER = "webdriver.chrome.driver";
-    public static final String CHROME_DRIVER_PATH
-            = "D:\\code\\SeleniumCrawler\\src\\main\\resources\\chromedriver.exe";
-    public static final String TMALL_ITEM_URL = "https://detail.tmall.com/item.htm?id=";
-    public static final String TMALL_M_ITEM_URL = "https://detail.m.tmall.com/item.htm?id=";
     public static final String DEFAULT_USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) " +
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/57.0.2987.133 Safari/537.36";
-    public static final String PROXY_IP_URL = "http://www.ip-adress.com/proxy_list/?k=name";
-    public static final String TEST_PROXY_IP_URL = "https://www.tmall.com/";
-    public static final String TEST_PROXY_IP_URL2 = "https://chaoshi.detail.tmall.com/item.htm?id=";
-    public static final int PROXYIP_DANGER_TIMES = 5;
-    public static final int PROXYIP_ERROR_TIMES = 10;
-    public static final String PHANTOMJS_PATH = "D:\\develop\\tool\\phantomjs\\bin\\phantomjs.exe ";
-    public static final String PHANTOMJS_SCRIPT = " D:\\code\\SeleniumCrawler\\src\\main\\resources\\phantom_screenshot.js ";
-    public static final String PHANTOMJS_PATH_NAME = "phantomjs.binary.path";
-    public static final String PLATFORM_TMALL = "Tmall";
     public static final String DEFAULT_DATASOURCE = "dataSource1";
     public static final String STATUS_ON = "1"; // 上架状态
     public static final String STATUS_OFF = "0";// 下架状态
@@ -44,5 +30,9 @@ public class CrawlerAttribute {
     public static final String FTP_USERNAME = "admin";
     public static final String FTP_PASSWORD = "infopower2016";
     public static final String BATCH_TIME = "batch_time";
-
+    public static final String CRAWLDB_NAME = "crawldb";
+    public static final String ERRORDB_NAME = "error";
+    public static final String LINKDB_NAME = "link";
+    public static final String FENTCHDB_NAME = "fentch";
+    public static final String UTF8 = "utf-8";
 }

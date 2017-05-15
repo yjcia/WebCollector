@@ -1,5 +1,7 @@
 package cn.earlydata.webcollector.core.framework;
 
+import cn.earlydata.webcollector.common.CrawlerAttribute;
+import cn.earlydata.webcollector.core.crawler.Crawler;
 import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
 import org.apache.log4j.Logger;
 import java.util.Collection;
@@ -29,7 +31,7 @@ public class Task {
             while(true){
                 if(pool.isTerminated()){
                     System.out.println(berkeleyDBManager);
-                    berkeleyDBManager.list("error");
+                    berkeleyDBManager.list(CrawlerAttribute.ERRORDB_NAME);
                     LOG.info("ExecutorService finished");
                     break;
                 }

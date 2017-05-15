@@ -1,5 +1,6 @@
 package cn.earlydata.webcollector.plugin.berkeley;
 
+import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.core.framework.DBManager;
 import cn.earlydata.webcollector.core.framework.Generator;
 import cn.earlydata.webcollector.model.CrawlDatum;
@@ -52,9 +53,9 @@ public class BerkeleyDBManager implements DBManager {
 
     @Override
     public void initSegmentWriter() {
-        fetchDatabase = env.openDatabase(null, "fetch", defaultDBConfig);
-        linkDatabase = env.openDatabase(null, "link", defaultDBConfig);
-        errorDatabase = env.openDatabase(null, "error", defaultDBConfig);
+        fetchDatabase = env.openDatabase(null, CrawlerAttribute.FENTCHDB_NAME, defaultDBConfig);
+        linkDatabase = env.openDatabase(null, CrawlerAttribute.LINKDB_NAME, defaultDBConfig);
+        errorDatabase = env.openDatabase(null, CrawlerAttribute.ERRORDB_NAME, defaultDBConfig);
     }
 
     public List<CrawlDatum> list(String databaseName) {
@@ -136,10 +137,10 @@ public class BerkeleyDBManager implements DBManager {
 
     public void merge() {
         LOG.info("start merge");
-        Database crawldbDatabase = env.openDatabase(null, "crawldb", defaultDBConfig);
-        /*合并fetch库*/
+        Database crawldbDatabase = env.openDatabase(null, CrawlerAttribute.CRAWLDB_NAME, defaultDBConfig);
+
         LOG.info("merge fetch database");
-        Database fetchDatabase = env.openDatabase(null, "fetch", defaultDBConfig);
+        Database fetchDatabase = env.openDatabase(null, CrawlerAttribute.FENTCHDB_NAME, defaultDBConfig);
         Cursor fetchCursor = fetchDatabase.openCursor(null, null);
         DatabaseEntry key = new DatabaseEntry();
         DatabaseEntry value = new DatabaseEntry();
@@ -148,9 +149,9 @@ public class BerkeleyDBManager implements DBManager {
         }
         fetchCursor.close();
         fetchDatabase.close();
-        /*合并link库*/
+
         LOG.info("merge link database");
-        Database linkDatabase = env.openDatabase(null, "link", defaultDBConfig);
+        Database linkDatabase = env.openDatabase(null, CrawlerAttribute.LINKDB_NAME, defaultDBConfig);
         Cursor linkCursor = linkDatabase.openCursor(null, null);
         while (linkCursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
             if (!(crawldbDatabase.get(null, key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS)) {
@@ -159,9 +160,9 @@ public class BerkeleyDBManager implements DBManager {
         }
         linkCursor.close();
         linkDatabase.close();
-        /*合并error库*/
+
         LOG.info("merge error database");
-        Database errorDatabase = env.openDatabase(null, "error", defaultDBConfig);
+        Database errorDatabase = env.openDatabase(null, CrawlerAttribute.ERRORDB_NAME, defaultDBConfig);
         Cursor errorCursor = errorDatabase.openCursor(null, null);
         while (errorCursor.getNext(key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
             if (!(crawldbDatabase.get(null, key, value, LockMode.DEFAULT) == OperationStatus.SUCCESS)) {
@@ -173,11 +174,11 @@ public class BerkeleyDBManager implements DBManager {
         LOG.info("end merge");
         crawldbDatabase.close();
 
-        env.removeDatabase(null, "fetch");
+        env.removeDatabase(null, CrawlerAttribute.FENTCHDB_NAME);
         LOG.debug("remove fetch database");
-        env.removeDatabase(null, "link");
+        env.removeDatabase(null, CrawlerAttribute.LINKDB_NAME);
         LOG.debug("remove link database");
-        env.removeDatabase(null, "error");
+        env.removeDatabase(null, CrawlerAttribute.ERRORDB_NAME);
         LOG.debug("remove errors database");
     }
 
@@ -196,8 +197,8 @@ public class BerkeleyDBManager implements DBManager {
     public static CrawlDatum createCrawlDatum(DatabaseEntry key, DatabaseEntry value) {
         String datumKey = null;
         try {
-            datumKey = new String(key.getData(), "utf-8");
-            String valueStr = new String(value.getData(), "utf-8");
+            datumKey = new String(key.getData(), CrawlerAttribute.UTF8);
+            String valueStr = new String(value.getData(), CrawlerAttribute.UTF8);
             return CrawlDatumFormater.jsonStrToDatum(datumKey, valueStr);
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -232,7 +233,7 @@ public class BerkeleyDBManager implements DBManager {
 
     public CrawlDatum findFromDatabase(String key, String databaseName) {
         try {
-            DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
+            DatabaseEntry theKey = new DatabaseEntry(key.getBytes(CrawlerAttribute.UTF8));
             DatabaseEntry theData = new DatabaseEntry();
             Database database = env.openDatabase(null, databaseName, defaultDBConfig);
             if (database.get(null, theKey, theData, LockMode.DEFAULT) == OperationStatus.SUCCESS) {
@@ -242,7 +243,7 @@ public class BerkeleyDBManager implements DBManager {
                 return null;
             }
         } catch (LockConflictException lockConflict) {
-            LOG.error("从数据库" + databaseName + "中读取:" + key + "出现lock异常");
+            LOG.error("Database " + databaseName + " read: " + key + " lock error ");
             return null;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
@@ -258,24 +259,24 @@ public class BerkeleyDBManager implements DBManager {
             TransactionConfig txConfig = new TransactionConfig();
             txConfig.setSerializableIsolation(true);
             txn = env.beginTransaction(null, txConfig);
-            DatabaseEntry theKey = new DatabaseEntry(key.getBytes("UTF-8"));
+            DatabaseEntry theKey = new DatabaseEntry(key.getBytes(CrawlerAttribute.UTF8));
             OperationStatus res = database.delete(txn, theKey);
             txn.commit();
             if (res == OperationStatus.SUCCESS) {
-                LOG.info("从数据库" + database.getDatabaseName() + "中删除:" + key);
+                LOG.info("Database " + database.getDatabaseName() + " delete: " + key);
                 success = true;
                 return success;
             } else if (res == OperationStatus.KEYEMPTY) {
-                LOG.info("没有从数据库" + database.getDatabaseName() + "中找到:" + key + "。无法删除");
+                LOG.info("Database " + database.getDatabaseName() + " find: " + key + " empty");
             } else {
-                LOG.info("删除操作失败，由于" + res.toString());
+                LOG.info("Error info: " + res.toString());
             }
             return false;
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
             return false;
         } catch (LockConflictException lockConflict) {
-            LOG.error("删除操作失败，出现lockConflict异常");
+            LOG.error(lockConflict.getLocalizedMessage());
 
 
         } finally {
@@ -341,7 +342,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     public static DatabaseEntry strToEntry(String str) throws UnsupportedEncodingException {
-        return new DatabaseEntry(str.getBytes("utf-8"));
+        return new DatabaseEntry(str.getBytes(CrawlerAttribute.UTF8));
     }
 
     public Environment getEnv() {

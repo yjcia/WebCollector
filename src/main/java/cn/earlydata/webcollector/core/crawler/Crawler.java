@@ -17,6 +17,7 @@
  */
 package cn.earlydata.webcollector.core.crawler;
 
+import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.core.framework.DBManager;
 import cn.earlydata.webcollector.core.framework.Executor;
 import cn.earlydata.webcollector.core.framework.Fetcher;
@@ -48,7 +49,6 @@ public class Crawler {
     protected int maxExecuteCount = -1;
     protected Executor executor = null;
     protected DBManager dbManager;
-    private final static String crawldbName = "crawldb";
 
     public Crawler() {}
 
@@ -63,11 +63,11 @@ public class Crawler {
     }
 
     protected void saveSeeds() throws Exception {
-        dbManager.save(crawldbName,seeds);
+        dbManager.save(CrawlerAttribute.CRAWLDB_NAME,seeds);
     }
 
     public void saveForcedSeeds() throws Exception {
-        dbManager.save(crawldbName,forcedSeeds, true);
+        dbManager.save(CrawlerAttribute.CRAWLDB_NAME,forcedSeeds, true);
     }
 
     /**
