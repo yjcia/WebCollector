@@ -1,0 +1,316 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="crawlerMapper">
+    <resultMap id="keywordInfo" type="cn.earlydata.webcollector.model.CrawlerKeyWordsInfo">
+        <result column="cust_keyword_name" property="custkeywordName"/>
+        <result column="cust_keyword_id" property="custKeywordId"/>
+        <result column="platform_name" property="platformName"/>
+    </resultMap>
+
+    <!-- 字段 -->
+    <sql id="goodsInfoFields">
+        cust_keyword_id,
+        goodsId,
+        egoodsId,
+        message,
+        platform_goods_name,
+        platform_name_en,
+        platform_category,
+        platform_sellerid,
+        platform_sellername,
+        platform_shopid,
+        platform_shopname,
+        platform_shoptype,
+        delivery_info,
+        delivery_place,
+        seller_location,
+        goods_status,
+        inventory,
+        sale_qty,
+        ttl_comment_num,
+        pos_comment_num,
+        neg_comment_num,
+        neu_comment_num,
+        goods_url,
+        goods_pic_url,
+        update_time,
+        update_date,
+        feature1,
+        batch_time,
+        deposit,
+        to_use_amount,
+        reserve_num
+    </sql>
+
+    <sql id="goodsPriceInfoFields">
+        cust_keyword_id,
+        goodsid,
+        SKUid,
+        channel,
+        original_price,
+        current_price,
+        promotion,
+        update_time,
+        update_date,
+        batch_time,
+        carnival_price,
+        head_promotion
+    </sql>
+
+    <sql id="screenshotInfoFields">
+        cust_account_id,
+        screenshot_type,
+        screenshot_id,
+        skuid,
+        screenshot_url,
+        update_time,
+        update_date,
+        screenshot_time,
+        batch_time,
+        channel
+    </sql>
+
+    <sql id="goodsInfoFieldsValue">
+        #{item.custKeywordId},
+        #{item.goodsId},
+        #{item.egoodsId},
+        #{item.message},
+        #{item.platformGoodsName},
+        #{item.platformNameEn},
+        #{item.platformCategory},
+        #{item.platformSellerId},
+        #{item.platformSellerName},
+        #{item.platformShopId},
+        #{item.platformShopName},
+        #{item.platformShopType},
+        #{item.deliveryInfo},
+        #{item.deliveryPlace},
+        #{item.sellerLocation},
+        #{item.goodsStatus},
+        #{item.inventory},
+        #{item.saleQty},
+        #{item.ttlCommentNum},
+        #{item.posCommentNum},
+        #{item.negCommentNum},
+        #{item.neuCommentNum},
+        #{item.goodsUrl},
+        #{item.goodsPicUrl},
+        #{item.updateTime},
+        #{item.updateDate},
+        #{item.feature},
+        #{item.batchTime},
+        #{item.deposit},
+        #{item.toUseAmount},
+        #{item.reserveNum}
+    </sql>
+
+    <sql id="goodsPriceInfoFieldsValue">
+        #{item.custkeywordId},
+        #{item.goodsId},
+        #{item.skuId},
+        #{item.channel},
+        #{item.originalPrice},
+        #{item.currentPrice},
+        #{item.promotion},
+        #{item.updateTime},
+        #{item.updateDate},
+        #{item.batchTime},
+        #{item.carnivalPrice},
+        #{item.headPromotion}
+    </sql>
+
+    <sql id="screenshotInfoFieldsValue">
+        #{item.custAccountId},
+        #{item.screenshotType},
+        #{item.screenshotId},
+        #{item.skuid},
+        #{item.screenshotUrl},
+        #{item.updateTime},
+        #{item.updateDate},
+        #{item.screenshotTime},
+        #{item.batchTime},
+        #{item.channel}
+    </sql>
+
+    <insert id="insertGoodsInfoList">
+        insert INTO craw_goods_Info (
+          <include refid="goodsInfoFields"></include>
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+              <include refid="goodsInfoFieldsValue"></include>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertGoodsInfo">
+        insert INTO craw_goods_Info (
+          <include refid="goodsInfoFields"></include>
+        )
+        values
+        (
+            #{custKeywordId},
+            #{goodsId},
+            #{egoodsId},
+            #{message},
+            #{platformGoodsName},
+            #{platformNameEn},
+            #{platformCategory},
+            #{platformSellerId},
+            #{platformSellerName},
+            #{platformShopId},
+            #{platformShopName},
+            #{platformShopType},
+            #{deliveryInfo},
+            #{deliveryPlace},
+            #{sellerLocation},
+            #{goodsStatus},
+            #{inventory},
+            #{saleQty},
+            #{ttlCommentNum},
+            #{posCommentNum},
+            #{negCommentNum},
+            #{neuCommentNum},
+            #{goodsUrl},
+            #{goodsPicUrl},
+            #{updateTime},
+            #{updateDate},
+            #{feature},
+            #{batchTime},
+            #{deposit},
+            #{toUseAmount},
+            #{reserveNum}
+        )
+
+    </insert>
+
+    <insert id="insertGoodsPriceInfoList">
+        insert INTO craw_goods_Price_Info (
+        <include refid="goodsPriceInfoFields"></include>
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            <include refid="goodsPriceInfoFieldsValue"></include>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertGoodsPriceInfo">
+        insert INTO craw_goods_Price_Info (
+        <include refid="goodsPriceInfoFields"></include>
+        )
+        values
+        (
+            #{custkeywordId},
+            #{goodsId},
+            #{skuId},
+            #{channel},
+            #{originalPrice},
+            #{currentPrice},
+            #{promotion},
+            #{updateTime},
+            #{updateDate},
+            #{batchTime},
+            #{carnivalPrice},
+            #{headPromotion}
+        )
+    </insert>
+
+    <insert id="insertScreenshotList">
+        insert INTO craw_screenshot_Info (
+        <include refid="screenshotInfoFields"></include>
+        )
+        values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (
+            <include refid="screenshotInfoFieldsValue"></include>
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertScreenshot">
+        insert INTO craw_screenshot_Info (
+        <include refid="screenshotInfoFields"></include>
+        )
+        values
+        (
+            #{custAccountId},
+            #{screenshotType},
+            #{screenshotId},
+            #{skuid},
+            #{screenshotUrl},
+            #{updateTime},
+            #{updateDate},
+            #{screenshotTime},
+            #{batchTime},
+            #{channel}
+        )
+    </insert>
+
+    <insert id="mergeToGoodsInfoHistory">
+        insert into craw_goods_Info_history
+        select * from craw_goods_Info where platform_name_en = #{platformNameEn}
+        and cust_keyword_id in
+        (
+          select cust_keyword_id from craw_keywords_Info where cust_account_id = #{custAccountId}
+        )
+    </insert>
+
+    <insert id="mergeToGoodsPriceInfoHistory">
+        insert into craw_goods_Price_Info_history
+        select * from craw_goods_Price_Info where goodsid in
+        (
+            select goodsid from craw_goods_Info where platform_name_en = #{platformNameEn}
+            and cust_keyword_id in
+            (
+              select cust_keyword_id from craw_keywords_Info where cust_account_id = #{custAccountId}
+            )
+        )
+    </insert>
+
+    <insert id="mergeToScreenshotInfoHistory">
+        insert into craw_screenshot_Info_history
+        select * from craw_screenshot_Info where screenshot_id in
+        (
+            select goodsid from craw_goods_Info where platform_name_en = #{platformNameEn}
+            and cust_keyword_id in
+            (
+                select cust_keyword_id from craw_keywords_Info where cust_account_id = #{custAccountId}
+            )
+        )
+    </insert>
+
+    <delete id="cleanGoodsInfo">
+        delete from craw_goods_Info where platform_name_en = #{platformNameEn}
+        and cust_keyword_id in
+        (
+            select cust_keyword_id from craw_keywords_Info where cust_account_id = #{custAccountId}
+        )
+    </delete>
+
+    <delete id="cleanGoodsPriceInfo">
+        delete from craw_goods_Price_Info where goodsid in
+        (
+            select goodsid from craw_goods_Info where platform_name_en = #{platformNameEn}
+            and cust_keyword_id in
+            (
+                select cust_keyword_id from craw_keywords_Info where cust_account_id = #{custAccountId}
+            )
+        )
+    </delete>
+
+    <select id="findKeywordId" resultMap="keywordInfo">
+        SELECT DISTINCT cust_keyword_name,cust_keyword_id,platform_name from
+        [dbo].[craw_keywords_Info] WHERE cust_account_id= #{custAccountId}
+        AND cust_keyword_type = 'egoodsid'
+        AND crawling_status = '1'
+        AND platform_name = #{platformName}
+    </select>
+
+    <select id="findCustKeyWordIdByName" resultType="java.lang.String">
+        select cust_keyword_id from craw_keywords_Info where cust_account_id = 13
+        and platform_name = 'amazon' and cust_keyword_name = #{keywordName}
+    </select>
+</mapper>
