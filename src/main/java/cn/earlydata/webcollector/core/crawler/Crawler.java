@@ -125,7 +125,7 @@ public class Crawler {
             long endTime = System.currentTimeMillis();
             long costTime = (endTime - startTime) / 1000;
             int totalGenerate = generator.getTotalGenerate();
-            LOG.info("depth " + (i + 1) + " finish: \n\ttotal urls:\t" + totalGenerate + "\n\ttotal time:\t" + costTime + " seconds");
+            LOG.info("Crawler Report : \n\ttotal urls:\t" + seeds.size() + "\n\ttotal time:\t" + costTime + " seconds");
             if (totalGenerate == 0) {
                 break;
             }
@@ -259,11 +259,10 @@ public class Crawler {
         addSeed(url, false);
     }
 
-    public void addSeed(String url,String key,boolean needAutoProxy,Map<String,Object> paramMap){
+    public void addSeed(String url,String key,Map<String,Object> paramMap){
         CrawlDatum datum = new CrawlDatum(url);
         datum.setMetaData(paramMap);
         datum.setKey(key);
-        datum.setNeedAutoProxy(needAutoProxy);
         addSeed(datum);
     }
 

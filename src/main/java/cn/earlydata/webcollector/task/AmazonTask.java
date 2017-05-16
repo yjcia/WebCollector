@@ -27,7 +27,6 @@ public class AmazonTask extends BreadthCrawler {
 
     private static final Logger LOG = Logger.getLogger(AmazonTask.class);
     private static Map<String, String> headerMap;
-    private boolean needAutoProxy = false;
     static {
         headerMap = new HashMap<String, String>();
         headerMap.put("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
@@ -71,10 +70,10 @@ public class AmazonTask extends BreadthCrawler {
                 paramMap.put(CrawlerAttribute.CUST_KEY_WORD_ID, keyWordsInfo.getCustKeywordId());
                 paramMap.put(CrawlerAttribute.GOODS_URL, url);
                 paramMap.put(CrawlerAttribute.BATCH_TIME, batchTime);
-                addSeed(url, key, needAutoProxy,paramMap);
+                addSeed(url, key,paramMap);
             }
             setExecuteInterval(1000);
-            setThreads(10);
+            setThreads(2);
             /**
              * true表示支持断点爬取
              * 如果第一次爬取成功CrawlDatum的status=1，这样
@@ -101,11 +100,11 @@ public class AmazonTask extends BreadthCrawler {
             dbManager.setCrawlPath(databaseName);
             super.initCrawler(databaseName, false, dbManager, headerMap);
             for (CrawlDatum crawlDatum : crawlDatumList) {
-                addSeed(crawlDatum.url(), crawlDatum.key(),needAutoProxy,crawlDatum.getMetaData());
+                addSeed(crawlDatum.url(), crawlDatum.key(),crawlDatum.getMetaData());
 
             }
             setExecuteInterval(1000);
-            setThreads(10);
+            setThreads(1);
             setResumable(false);
             setCrawlerTaskName(CrawlerAttribute.AMAZON_TASK);
             start(1);
@@ -115,7 +114,7 @@ public class AmazonTask extends BreadthCrawler {
     }
 
     public void visit(Page page, CrawlDatums next) {
-        LOG.info("find url : " + page.url() + " " + page.select("span[id=productTitle]").text());
+        LOG.info("find url : " + page.url() + " title: " + page.select("span[id=productTitle]").text());
 //        if (page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")) {
 //            page.crawlDatum().setCrawlSuccess(false);
 //        }

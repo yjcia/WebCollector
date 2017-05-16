@@ -39,6 +39,7 @@ public class Task {
                 if (pool.isTerminated()) {
                     List<CrawlDatum> crawlDatumList =
                             berkeleyDBManager.list(CrawlerAttribute.ERRORDB_NAME, taskName);
+                    LOG.info(" ------ Error Database contains " + crawlDatumList.size() + " records ------");
                     if (crawlDatumList.size() > 0 && retryTimes < MAX_RETRY_TIMES) {
                         String databaseName = CrawlerAttribute.AMAZON_TASK + "_error_" + retryTimes;
                         berkeleyDBManager.clear(databaseName);

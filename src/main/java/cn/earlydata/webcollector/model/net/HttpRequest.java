@@ -62,8 +62,9 @@ public class HttpRequest {
     protected Map<String, String> headerMap = null;
     protected CrawlDatum crawlDatum = null;
     protected IpPool ipPool = IpPool.getInstance();
-
+    private static boolean autoProxy = false;
     static {
+        autoProxy = Boolean.parseBoolean(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.AUTO_PROXY));
         TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -117,17 +118,20 @@ public class HttpRequest {
         int maxRedirect = Math.max(0, MAX_REDIRECT);
         HttpURLConnection con = null;
         InputStream is = null;
-        AvProxy bind = null;
+        AvProxy avProxy = null;
         try {
             for (int redirect = 0; redirect <= maxRedirect; redirect++) {
                 if (proxy != null) {
                     con = (HttpURLConnection) url.openConnection(proxy);
                 } else {
-                    bind = ipPool.bind(CommonUtil.extractDomain(urlString), urlString);
-                    if (bind != null && crawlDatum.isNeedAutoProxy()) {
-                        bind.recordUsage();
+                    avProxy = ipPool.bind(CommonUtil.extractDomain(urlString), urlString);
+                    Thread.sleep(2000);
+                    if (avProxy != null && autoProxy) {
+
+                        avProxy.recordUsage();
                         con = (HttpURLConnection) url.openConnection(
-                                new Proxy(Proxy.Type.HTTP, new InetSocketAddress(bind.getIp(), bind.getPort())));
+                                new Proxy(Proxy.Type.HTTP, new InetSocketAddress(avProxy.getIp(), avProxy.getPort())));
+                        LOG.info(urlString + " ------ Use Proxy ------" + avProxy.getIp() + " " + avProxy.getPort());
                     } else {
                         con = (HttpURLConnection) url.openConnection();
                     }
@@ -154,7 +158,6 @@ public class HttpRequest {
 
                 boolean needBreak = false;
                 switch (code) {
-
                     case HttpURLConnection.HTTP_MOVED_PERM:
                     case HttpURLConnection.HTTP_MOVED_TEMP:
                         response.setRedirect(true);
@@ -210,8 +213,8 @@ public class HttpRequest {
 
             return response;
         } catch (Exception ex) {
-            if (bind != null) {
-                bind.recordFailed();// 当前不判断那种类型异常导致下线
+            if (avProxy != null) {
+                avProxy.recordFailed();// 当前不判断那种类型异常导致下线
             }
             throw ex;
         } finally {

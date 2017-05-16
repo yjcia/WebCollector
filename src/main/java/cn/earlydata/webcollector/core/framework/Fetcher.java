@@ -183,18 +183,18 @@ public class Fetcher {
                         CrawlDatums next = new CrawlDatums();
                         try {
                             executor.execute(crawlDatum, next);
-                            if(crawlDatum.isCrawlSuccess()){
+                            if (crawlDatum.isCrawlSuccess()) {
                                 LOG.info("done: " + crawlDatum.key());
                                 crawlDatum.setStatus(CrawlDatum.STATUS_DB_SUCCESS);
-                            }else{
-                                LOG.info("failed: " + crawlDatum.key());
+                            } else {
+                                LOG.error("failed: " + crawlDatum.key());
                                 crawlDatum.setStatus(CrawlDatum.STATUS_DB_FAILED);
                                 dbManager.writeErrorSegment(crawlDatum);
                             }
 
                         } catch (Exception ex) {
                             //如果爬取败异常
-                            LOG.info("failed: " + crawlDatum.key(), ex);
+                            LOG.error("failed: " + crawlDatum.key(), ex);
                             crawlDatum.setStatus(CrawlDatum.STATUS_DB_FAILED);
                             crawlDatum.setCrawlSuccess(false);
                             dbManager.writeErrorSegment(crawlDatum);
@@ -207,7 +207,7 @@ public class Fetcher {
                                 dbManager.writeParseSegment(next);
                             }
                         } catch (Exception ex) {
-                            LOG.info("Exception when updating db", ex);
+                            LOG.error("Exception when updating db", ex);
                         }
                         if (executeInterval > 0) {
                             try {
@@ -217,11 +217,11 @@ public class Fetcher {
                         }
 
                     } catch (Exception ex) {
-                        LOG.info("Exception", ex);
+                        LOG.error("Exception", ex);
                     }
                 }
             } catch (Exception ex) {
-                LOG.info("Exception", ex);
+                LOG.error("Exception", ex);
             } finally {
                 activeThreads.decrementAndGet();
             }
@@ -258,7 +258,7 @@ public class Fetcher {
             for (int i = 0; i < threads; i++) {
                 runnableArrayList.add(new FetcherThread());
             }
-            new Task(dbManager).doExecute(runnableArrayList,taskName);
+            new Task(dbManager).doExecute(runnableArrayList, taskName);
             do {
                 try {
                     Thread.sleep(1000);
@@ -278,7 +278,8 @@ public class Fetcher {
                     break;
                 }
 
-            } while (running && (startedThreads.get() != threads || activeThreads.get() > 0));
+            }
+            while (running && (startedThreads.get() != threads || activeThreads.get() > 0));
             running = false;
             long waitThreadEndStartTime = System.currentTimeMillis();
             if (activeThreads.get() > 0) {
@@ -291,7 +292,8 @@ public class Fetcher {
                     Thread.sleep(500);
                 } catch (Exception ex) {
                 }
-                if (System.currentTimeMillis() - waitThreadEndStartTime > Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.WAIT_THREAD_END_TIME))) {
+                if (System.currentTimeMillis() - waitThreadEndStartTime >
+                        Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.WAIT_THREAD_END_TIME))) {
                     LOG.info("kill threads");
                     FetcherThread[] runnableArr = (FetcherThread[]) runnableArrayList.toArray();
                     for (int i = 0; i < runnableArr.length; i++) {
@@ -318,7 +320,6 @@ public class Fetcher {
             LOG.info("close segmentwriter:" + dbManager.getClass().getName());
         }
     }
-
 
 
     /**

@@ -177,11 +177,11 @@ public class BerkeleyDBManager implements DBManager {
         crawldbDatabase.close();
 
         env.removeDatabase(null, CrawlerAttribute.FENTCHDB_NAME);
-        LOG.debug("remove fetch database");
+        LOG.info("remove fetch database");
         env.removeDatabase(null, CrawlerAttribute.LINKDB_NAME);
-        LOG.debug("remove link database");
+        LOG.info("remove link database");
         env.removeDatabase(null, CrawlerAttribute.ERRORDB_NAME);
-        LOG.debug("remove errors database");
+        LOG.info("remove errors database");
     }
 
 

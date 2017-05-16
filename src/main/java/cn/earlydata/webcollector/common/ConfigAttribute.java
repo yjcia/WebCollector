@@ -31,5 +31,6 @@ public class ConfigAttribute {
     public static String MAX_EXECUTE_COUNT = "max_execute_count";
     public static String DEFAULT_HTTP_METHOD = "default_http_method";
     public static String RETRY_TIMES = "retry_times";
+    public static String AUTO_PROXY = "auto_proxy";
 
 }
