@@ -22,12 +22,13 @@ import java.util.Map;
  * Created by Yanjun on 2017/05/11.
  */
 @Controller
-public class AmazonTask extends BreadthCrawler{
+public class AmazonTask extends BreadthCrawler {
 
     private static final Logger LOG = Logger.getLogger(AmazonTask.class);
-    private static Map<String,String> headerMap;
-    static{
-        headerMap = new HashMap<String,String>();
+    private static Map<String, String> headerMap;
+
+    static {
+        headerMap = new HashMap<String, String>();
         headerMap.put("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
         headerMap.put("Accept", "Accept text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
         headerMap.put("Accept-Charset", "GB2312,utf-8;q=0.7,*;q=0.7");
@@ -39,34 +40,37 @@ public class AmazonTask extends BreadthCrawler{
     @Autowired
     private CommonService commonService;
 
-    public AmazonTask() {}
+    public AmazonTask() {
+    }
 
     /**
      * 爬虫任务初始化
+     *
      * @param crawlPath
      * @param autoParse
      */
     public void taskInit(String crawlPath, boolean autoParse) {
-        super.initCrawler(crawlPath, autoParse,headerMap);
+        super.initCrawler(crawlPath, autoParse, headerMap);
     }
 
     /**
      * 执行爬虫任务
      */
-    public void taskRun(){
+    public void taskRun() {
         try {
             Date batchTime = new Date();
             List<CrawlerKeyWordsInfo> crawlerKeyWordsInfoList =
-                    commonService.findKeywordInfoList(CrawlerAttribute.AMAZON_CUST_ACCOUNT_ID,CrawlerAttribute.PLATFORM_AMAZON);
-            for(CrawlerKeyWordsInfo keyWordsInfo:crawlerKeyWordsInfoList){
-                Map<String,Object> paramMap = new HashMap<String,Object>();
+                    commonService.findKeywordInfoList(CrawlerAttribute.AMAZON_CUST_ACCOUNT_ID, CrawlerAttribute.PLATFORM_AMAZON);
+            for (CrawlerKeyWordsInfo keyWordsInfo : crawlerKeyWordsInfoList) {
+                String proxyIp = "";
+                Map<String, Object> paramMap = new HashMap<String, Object>();
                 String url = CrawlerAttribute.AMAZON_DE_URL + keyWordsInfo.getCustkeywordName() + "/";
                 String key = CrawlerAttribute.AMAZON_TASK + "_" + url;
-                paramMap.put(CrawlerAttribute.AMAZON_ITEM_ID,keyWordsInfo.getCustkeywordName());
+                paramMap.put(CrawlerAttribute.AMAZON_ITEM_ID, keyWordsInfo.getCustkeywordName());
                 paramMap.put(CrawlerAttribute.CUST_KEY_WORD_ID, keyWordsInfo.getCustKeywordId());
                 paramMap.put(CrawlerAttribute.GOODS_URL, url);
-                paramMap.put(CrawlerAttribute.BATCH_TIME,batchTime);
-                addSeed(url,key,paramMap);
+                paramMap.put(CrawlerAttribute.BATCH_TIME, batchTime);
+                addSeed(url, key, proxyIp, paramMap);
             }
             setExecuteInterval(1000);
             setThreads(10);
@@ -88,15 +92,17 @@ public class AmazonTask extends BreadthCrawler{
      * 根据执行项目
      * 执行爬虫任务
      */
-    public void taskRun(List<CrawlDatum> crawlDatumList,String databaseName){
+    public void taskRun(List<CrawlDatum> crawlDatumList, String databaseName) {
         try {
             BerkeleyDBManager dbManager = new BerkeleyDBManager();
             //BerkeleyDBManager dbManager = ApplicationContextHolder.getBean(BerkeleyDBManager.class);
             //dbManager.clear();
             dbManager.setCrawlPath(databaseName);
-            super.initCrawler(databaseName,false,dbManager,headerMap);
-            for(CrawlDatum crawlDatum:crawlDatumList){
-                addSeed(crawlDatum.url(),crawlDatum.key(),crawlDatum.getMetaData());
+            super.initCrawler(databaseName, false, dbManager, headerMap);
+            for (CrawlDatum crawlDatum : crawlDatumList) {
+                String proxyIp = "";
+                addSeed(crawlDatum.url(), crawlDatum.key(), proxyIp, crawlDatum.getMetaData());
+
             }
             setExecuteInterval(1000);
             setThreads(10);
@@ -111,7 +117,7 @@ public class AmazonTask extends BreadthCrawler{
     public void visit(Page page, CrawlDatums next) {
         LOG.info("find url : " + page.url());
         //假设爬取失败
-        if(page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")){
+        if (page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")) {
             page.crawlDatum().setCrawlSuccess(false);
         }
     }

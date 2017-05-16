@@ -28,15 +28,17 @@ import java.util.Map;
  */
 public class CrawlDatum implements Serializable {
 
-    public final static int STATUS_DB_UNEXECUTED = 0;
-    public final static int STATUS_DB_FAILED = 1;
-    public final static int STATUS_DB_SUCCESS = 5;
-    public boolean crawlSuccess = true;
     private String url = null;
     private long executeTime = System.currentTimeMillis();
     private int status = STATUS_DB_UNEXECUTED;
     private int executeCount = 0;
+    private String proxyIp;
+    public final static int STATUS_DB_UNEXECUTED = 0;
+    public final static int STATUS_DB_FAILED = 1;
+    public final static int STATUS_DB_SUCCESS = 5;
+    public boolean crawlSuccess = true;
     public static final String META_KEY_TYPE = "s_t";
+
     /**
      * 在WebCollector 2.5之后，不再根据URL去重，而是根据key去重
      * 可以通过getKey()方法获得CrawlDatum的key,如果key为null,getKey()方法会返回URL
@@ -175,6 +177,14 @@ public class CrawlDatum implements Serializable {
 
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getProxyIp() {
+        return proxyIp;
+    }
+
+    public void setProxyIp(String proxyIp) {
+        this.proxyIp = proxyIp;
     }
 
     @Override

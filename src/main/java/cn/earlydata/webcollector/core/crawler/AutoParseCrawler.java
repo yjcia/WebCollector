@@ -22,14 +22,13 @@ import cn.earlydata.webcollector.core.framework.Visitor;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.model.Links;
-import cn.earlydata.webcollector.model.net.HttpRequest;
 import cn.earlydata.webcollector.model.Page;
 import cn.earlydata.webcollector.model.net.HttpCrawResponse;
+import cn.earlydata.webcollector.model.net.HttpRequest;
 import cn.earlydata.webcollector.model.net.Requester;
 import cn.earlydata.webcollector.util.HttpCrawlerUtil;
 import cn.earlydata.webcollector.util.RegexRule;
 import org.apache.http.HttpResponse;
-
 import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 
@@ -44,11 +43,12 @@ public abstract class AutoParseCrawler extends Crawler implements Executor, Visi
     protected Visitor visitor;
     protected Requester requester;
     protected RegexRule regexRule = new RegexRule();
-    protected Map<String,String> headerMap;
+    protected Map<String, String> headerMap;
+
     public AutoParseCrawler() {
     }
 
-    public void initCrawler(boolean autoParse,Map<String,String> headerMap) {
+    public void initCrawler(boolean autoParse, Map<String, String> headerMap) {
         this.autoParse = autoParse;
         this.visitor = this;
         this.requester = this;
@@ -63,26 +63,28 @@ public abstract class AutoParseCrawler extends Crawler implements Executor, Visi
      * @return
      * @throws Exception
      */
-    public HttpCrawResponse getResponse(CrawlDatum crawlDatum) throws Exception {
+    public HttpCrawResponse getResponse(CrawlDatum crawlDatum,Map<String, String> headerMap) throws Exception {
         HttpRequest request = new HttpRequest(crawlDatum);
+        request.setHeaderMap(headerMap);
         return request.response();
     }
 
     /**
      * 针对HttpClient获取response的方式
+     *
      * @param crawlDatum
      * @return
      * @throws Exception
      */
-    public HttpResponse getHttpResponse(CrawlDatum crawlDatum,Map<String,String> headerMap) throws Exception {
-        HttpCrawlerUtil.init(headerMap);
+    public HttpResponse getHttpResponse(CrawlDatum crawlDatum, Map<String, String> headerMap, String proxy) throws Exception {
+        HttpCrawlerUtil.init(headerMap, proxy);
         return HttpCrawlerUtil.getHttpResponse(HttpCrawlerUtil.getConnection(), crawlDatum.url());
     }
 
     public void execute(CrawlDatum datum, CrawlDatums next) throws Exception {
         long sleepTime = 2000L;
         Thread.sleep(sleepTime);
-        HttpResponse response = requester.getHttpResponse(datum,headerMap);
+        HttpCrawResponse response = requester.getResponse(datum, headerMap);
         Page page = new Page(datum, response);
         visitor.visit(page, next);
         if (autoParse && !regexRule.isEmpty()) {

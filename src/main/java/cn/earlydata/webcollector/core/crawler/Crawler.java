@@ -259,10 +259,11 @@ public class Crawler {
         addSeed(url, false);
     }
 
-    public void addSeed(String url,String key,Map<String,Object> paramMap){
+    public void addSeed(String url,String key,String proxyIp,Map<String,Object> paramMap){
         CrawlDatum datum = new CrawlDatum(url);
         datum.setMetaData(paramMap);
         datum.setKey(key);
+        datum.setProxyIp(proxyIp);
         addSeed(datum);
     }
 

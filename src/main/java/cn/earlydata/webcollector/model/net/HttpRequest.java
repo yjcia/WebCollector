@@ -45,18 +45,17 @@ import javax.net.ssl.X509TrustManager;
 public class HttpRequest {
 
     public static final Logger LOG = Logger.getLogger(HttpRequest.class);
-
+    protected String method = PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.DEFAULT_HTTP_METHOD);
     protected int MAX_REDIRECT = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_REDIRECT));
     protected int MAX_RECEIVE_SIZE = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_RECEIVE_SIZE));
-    protected String method = PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.DEFAULT_HTTP_METHOD);
-    protected boolean doinput = true;
-    protected boolean dooutput = true;
-    protected boolean followRedirects = false;
     protected int timeoutForConnect = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_CONNECT));
     protected int timeoutForRead = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_READ));
     protected byte[] outputData=null;
+    protected boolean doinput = true;
+    protected boolean dooutput = true;
+    protected boolean followRedirects = false;
     protected Proxy proxy = null;
-    protected Map<String, List<String>> headerMap = null;
+    protected Map<String, String> headerMap = null;
     protected CrawlDatum crawlDatum = null;
 
     static {
@@ -216,13 +215,11 @@ public class HttpRequest {
         con.setReadTimeout(timeoutForRead);
 
         if (headerMap != null) {
-            for (Map.Entry<String, List<String>> entry : headerMap.entrySet()) {
-                String key = entry.getKey();
-                List<String> valueList = entry.getValue();
-                for (String value : valueList) {
-                    con.addRequestProperty(key, value);
-                }
+            for (Map.Entry<String, String> entry : headerMap.entrySet()) {
+
+                con.addRequestProperty(entry.getKey(), entry.getValue());
             }
+
         }
     }
 
@@ -244,7 +241,7 @@ public class HttpRequest {
 
     private void initHeaderMap() {
         if (headerMap == null) {
-            headerMap = new HashMap<String, List<String>>();
+            headerMap = new HashMap<String, String>();
         }
     }
 
@@ -254,22 +251,6 @@ public class HttpRequest {
 
     public void setCookie(String cookie) {
         setHeader("Cookie", cookie);
-    }
-
-    public void addHeader(String key, String value) {
-        if (key == null) {
-            throw new NullPointerException("key is null");
-        }
-        if (value == null) {
-            throw new NullPointerException("value is null");
-        }
-        initHeaderMap();
-        List<String> valueList = headerMap.get(key);
-        if (valueList == null) {
-            valueList = new ArrayList<String>();
-            headerMap.put(key, valueList);
-        }
-        valueList.add(value);
     }
 
     public void removeHeader(String key) {
@@ -290,32 +271,18 @@ public class HttpRequest {
             throw new NullPointerException("value is null");
         }
         initHeaderMap();
-        List<String> valueList = new ArrayList<String>();
-        valueList.add(value);
-        headerMap.put(key, valueList);
+        headerMap.put(key, value);
     }
 
-    public Map<String, List<String>> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headerMap;
     }
 
-    public List<String> getHeader(String key) {
+    public String getHeader(String key) {
         if (headerMap == null) {
             return null;
         }
         return headerMap.get(key);
-    }
-
-    public String getFirstHeader(String key) {
-        if (headerMap == null) {
-            return null;
-        }
-        List<String> valueList = headerMap.get(key);
-        if (valueList.size() > 0) {
-            return valueList.get(0);
-        } else {
-            return null;
-        }
     }
 
     public boolean isDoinput() {
@@ -358,11 +325,11 @@ public class HttpRequest {
         this.proxy = proxy;
     }
 
-    public Map<String, List<String>> getHeaderMap() {
+    public Map<String, String> getHeaderMap() {
         return headerMap;
     }
 
-    public void setHeaderMap(Map<String, List<String>> headerMap) {
+    public void setHeaderMap(Map<String, String> headerMap) {
         this.headerMap = headerMap;
     }
 

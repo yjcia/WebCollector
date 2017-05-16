@@ -36,7 +36,7 @@ public class Proxys extends ArrayList<Proxy> {
     public static Random random = new Random();
     
     public Proxy nextRandom(){
-        int r=random.nextInt(this.size());
+        int r = random.nextInt(this.size());
         return this.get(r);
     }
     

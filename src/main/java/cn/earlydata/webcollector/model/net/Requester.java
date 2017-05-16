@@ -7,6 +7,6 @@ import org.apache.http.HttpResponse;
 import java.util.Map;
 
 public interface Requester {
-     public HttpCrawResponse getResponse(CrawlDatum crawlDatum) throws Exception;
-     public HttpResponse getHttpResponse(CrawlDatum crawlDatum,Map<String,String> headerMap) throws Exception;
+     public HttpCrawResponse getResponse(CrawlDatum crawlDatum,Map<String,String> headerMap) throws Exception;
+     public HttpResponse getHttpResponse(CrawlDatum crawlDatum,Map<String,String> headerMap,String proxy) throws Exception;
 }

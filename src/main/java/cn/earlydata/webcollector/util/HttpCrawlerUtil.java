@@ -1,7 +1,9 @@
 package cn.earlydata.webcollector.util;
 
+import cn.earlydata.webcollector.common.ConfigAttribute;
 import cn.earlydata.webcollector.common.CrawlerAttribute;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.HttpGet;
@@ -35,10 +37,14 @@ import java.util.Random;
 public class HttpCrawlerUtil {
     private static Logger log = Logger.getLogger(HttpCrawlerUtil.class);
     private static PoolingHttpClientConnectionManager connManager;
-    private static final int TIMEOUT_VALUE = 70000;
-    private static Map<String,String> headerMap;
+    private static Map<String, String> headerMap;
+    private static String proxy;
+    private static final int MAX_REDIRECT = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_REDIRECT));
+    private static final int TIMEOUT_VALUE = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_CONNECT));
+
     /**
      * SSL处理
+     *
      * @return
      * @throws NoSuchAlgorithmException
      * @throws KeyManagementException
@@ -48,13 +54,13 @@ public class HttpCrawlerUtil {
         // 实现一个X509TrustManager接口，用于绕过验证，不用修改里面的方法
         X509TrustManager trustManager = new X509TrustManager() {
             public void checkClientTrusted(
-                java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
-                String paramString) throws CertificateException {
+                    java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
+                    String paramString) throws CertificateException {
             }
 
             public void checkServerTrusted(
-                java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
-                String paramString) throws CertificateException {
+                    java.security.cert.X509Certificate[] paramArrayOfX509Certificate,
+                    String paramString) throws CertificateException {
             }
 
             public java.security.cert.X509Certificate[] getAcceptedIssuers() {
@@ -67,13 +73,14 @@ public class HttpCrawlerUtil {
 
     /**
      * 初始化httpclientpool
+     *
      * @return
      * @throws KeyManagementException
      * @throws NoSuchAlgorithmException
      */
-    public static void init(Map<String,String> paramHeaderMap)
-    {
+    public static void init(Map<String, String> paramHeaderMap,String proxyIp) {
         headerMap = paramHeaderMap;
+        proxy = proxyIp;
         SSLContext sslcontext = null;
         try {
             sslcontext = HttpCrawlerUtil.createIgnoreVerifySSL();
@@ -93,15 +100,15 @@ public class HttpCrawlerUtil {
 
     /**
      * 获得HttpClient
+     *
      * @return
      */
-    public static CloseableHttpClient getConnection(){
+    public static CloseableHttpClient getConnection() {
         RequestConfig requestConfig = RequestConfig.custom().setConnectionRequestTimeout(TIMEOUT_VALUE)
                 .setConnectTimeout(TIMEOUT_VALUE).setSocketTimeout(TIMEOUT_VALUE).build();
         CloseableHttpClient httpClient = HttpClients.custom()
                 .setConnectionManager(connManager).setDefaultRequestConfig(requestConfig).build();
-        if(connManager != null && connManager.getTotalStats()!= null)
-        {
+        if (connManager != null && connManager.getTotalStats() != null) {
             log.info("now client pool " + connManager.getTotalStats().toString());
         }
         return httpClient;
@@ -109,26 +116,36 @@ public class HttpCrawlerUtil {
 
     /**
      * 获得HttpGet
+     *
      * @param url
      * @return
      */
-    public static HttpGet getHttpGet(String url){
+    public static HttpGet getHttpGet(String url, String proxyIpAddress) {
+        HttpHost proxy = StringUtil.notEmpty(proxyIpAddress) ?
+                new HttpHost(proxyIpAddress.split(":")[0], Integer.parseInt(proxyIpAddress.split(":")[1])) : null;
+
         HttpGet httpGet = new HttpGet(url);
         RequestConfig defaultRequestConfig = RequestConfig.custom()
                 .setSocketTimeout(TIMEOUT_VALUE)
                 .setConnectTimeout(TIMEOUT_VALUE)
                 .setConnectionRequestTimeout(TIMEOUT_VALUE)
+                .setProxy(proxy)
+                .setMaxRedirects(MAX_REDIRECT)
                 .build();
 
         RequestConfig config = RequestConfig.copy(defaultRequestConfig).build();
+
         httpGet.setConfig(config);
-        for(Map.Entry<String, String> entry : headerMap.entrySet()){
+
+        for (Map.Entry<String, String> entry : headerMap.entrySet()) {
             httpGet.setHeader(entry.getKey(), entry.getValue());
         }
         return httpGet;
     }
+
     /**
      * 获得请求地址参数列表
+     *
      * @param paramUrl
      * @param paramKey
      * @return
@@ -151,6 +168,7 @@ public class HttpCrawlerUtil {
 
     /**
      * 判断元素是否存在
+     *
      * @param driver
      * @param locator
      * @return
@@ -165,18 +183,16 @@ public class HttpCrawlerUtil {
     }
 
 
-
-
-
     /**
      * 得到httpclient请求返回的html
+     *
      * @param closeableHttpClient
      * @param url
      * @return
      * @throws IOException
      */
-    public static String getEntityHtmlStr(CloseableHttpClient closeableHttpClient,String url) throws IOException {
-        HttpGet httpGet = HttpCrawlerUtil.getHttpGet(url);
+    public static String getEntityHtmlStr(CloseableHttpClient closeableHttpClient, String url, String proxy) throws IOException {
+        HttpGet httpGet = HttpCrawlerUtil.getHttpGet(url, proxy);
         HttpResponse response = closeableHttpClient.execute(httpGet);
         HttpEntity httpEntity = response.getEntity();
         String httpEntityHtml = EntityUtils.toString(httpEntity, "UTF-8");
@@ -184,8 +200,8 @@ public class HttpCrawlerUtil {
         return httpEntityHtml;
     }
 
-    public static HttpResponse getHttpResponse(CloseableHttpClient closeableHttpClient,String url) throws IOException {
-        HttpGet httpGet = HttpCrawlerUtil.getHttpGet(url);
+    public static HttpResponse getHttpResponse(CloseableHttpClient closeableHttpClient, String url) throws IOException {
+        HttpGet httpGet = HttpCrawlerUtil.getHttpGet(url, proxy);
         HttpResponse response = closeableHttpClient.execute(httpGet);
         httpGet.abort();
         return response;
@@ -193,18 +209,20 @@ public class HttpCrawlerUtil {
 
     /**
      * 判断页面的某个节点是否存在子节点
+     *
      * @param element
      * @return
      */
-    public static boolean checkElementChildrenSize(Element element){
+    public static boolean checkElementChildrenSize(Element element) {
         return element != null && element.children().size() > 0;
     }
 
     /**
      * 判断节点是否存在
+     *
      * @return
      */
-    public static boolean checkElementExist(Element element){
+    public static boolean checkElementExist(Element element) {
         return element != null;
     }
 
