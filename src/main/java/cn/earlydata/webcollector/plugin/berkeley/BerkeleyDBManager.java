@@ -59,7 +59,7 @@ public class BerkeleyDBManager implements DBManager {
     }
 
     public List<CrawlDatum> list(String databaseName,String keyPrefix) {
-        List<CrawlDatum> crawlDatumList = new ArrayList<>();
+        List<CrawlDatum> crawlDatumList = new ArrayList<CrawlDatum>();
         try {
             if (env == null) {
                 open();

@@ -20,14 +20,12 @@ package cn.earlydata.webcollector.model;
 import cn.earlydata.webcollector.model.net.HttpCrawResponse;
 import cn.earlydata.webcollector.util.CharsetDetector;
 
-import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.util.EntityUtils;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -45,14 +43,10 @@ public class Page {
     public static final Logger LOG = Logger.getLogger(Page.class);
 
     private CrawlDatum crawlDatum = null;
-
     private HttpCrawResponse response = null;
-    private HttpResponse httpResponse = null;
     private Exception exception = null;
-
     private String html = null;
     private Document doc = null;
-
     private String charset = null;
 
     /**
@@ -73,11 +67,11 @@ public class Page {
     public boolean matchType(String type) {
         return crawlDatum.matchType(type);
     }
-    
+
     /**
      * 判断当前Page的Http响应头的Content-Type是否符合正则
      * @param contentTypeRegex
-     * @return 
+     * @return
      */
     public boolean matchContentType(String contentTypeRegex){
         if(contentTypeRegex==null){
@@ -85,8 +79,8 @@ public class Page {
         }
         return Pattern.matches(contentTypeRegex, contentType());
     }
-    
-     /**
+
+    /**
      * 获取网页中满足指定css选择器的所有元素的指定属性的集合
      * 例如通过getAttrs("img[src]","abs:src")可获取网页中所有图片的链接
      *
@@ -105,7 +99,6 @@ public class Page {
         return result;
     }
 
-
     /**
      * 获取满足选择器的元素中的链接 选择器cssSelector必须定位到具体的超链接 例如我们想抽取id为content的div中的所有超链接，这里
      * 就要将cssSelector定义为div[id=content] a
@@ -117,7 +110,6 @@ public class Page {
         Links links = new Links().addBySelector(doc(), cssSelector);
         return links;
     }
-    
 
     public Elements select(String cssSelector) {
         return this.doc().select(cssSelector);
@@ -134,30 +126,19 @@ public class Page {
 
     public String regex(String regex, int group, String defaultResult) {
         Pattern pattern = Pattern.compile(regex);
-        try {
-            Matcher matcher = pattern.matcher(html());
-            if (matcher.find()) {
-                return matcher.group(group);
-            } else {
-                return defaultResult;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        Matcher matcher = pattern.matcher(html());
+        if (matcher.find()) {
+            return matcher.group(group);
+        } else {
+            return defaultResult;
         }
-
-        return null;
     }
 
     public String regex(String regex, int group) {
         Pattern pattern = Pattern.compile(regex);
-        try {
-            Matcher matcher = pattern.matcher(html());
-            matcher.find();
-            return matcher.group(group);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return null;
+        Matcher matcher = pattern.matcher(html());
+        matcher.find();
+        return matcher.group(group);
     }
 
     public String regex(String regex, String defaultResult) {
@@ -172,17 +153,16 @@ public class Page {
         this.crawlDatum = datum;
         this.response = response;
     }
-
-    public Page(CrawlDatum datum, HttpResponse httpResponse) {
-        this.crawlDatum = datum;
-        this.httpResponse = httpResponse;
-    }
-
-    public long content() {
-        if (httpResponse == null) {
-            return 0;
+    /**
+     * 返回网页/文件的内容
+     *
+     * @return 网页/文件的内容
+     */
+    public byte[] content() {
+        if (response == null) {
+            return null;
         }
-        return httpResponse.getEntity().getContentLength();
+        return response.content();
     }
 
     /**
@@ -194,26 +174,27 @@ public class Page {
         return crawlDatum.url();
     }
 
-
     /**
      * 返回网页的源码字符串
      *
      * @return 网页的源码字符串
      */
-    public String html() throws IOException {
-        String httpResponseHtml = EntityUtils.toString(httpResponse.getEntity(),"UTF-8");
+    public String html() {
         if (html != null) {
             return html;
         }
-        
-        if((html = httpResponseHtml)!=null){
+
+        if((html=response.getHtml())!=null){
             return html;
         }
 
-        if (content() > 0) {
+        if (content() == null) {
             return null;
         }
-
+        if (charset == null) {
+            charset = CharsetDetector.guessEncoding(content());
+        }
+        html=response.decode(charset);
         return html;
     }
 
@@ -224,16 +205,6 @@ public class Page {
      */
     public void setHtml(String html) {
         this.html = html;
-    }
-
-    /**
-     * 返回网页解析后的DOM树(Jsoup的Document对象) 已废弃，使用doc()方法代替
-     *
-     * @return 网页解析后的DOM树
-     */
-    @Deprecated
-    public Document getDoc() {
-        return doc();
     }
 
     public List<String> header(String name) {
@@ -249,6 +220,7 @@ public class Page {
             return doc;
         }
         try {
+
             this.doc = Jsoup.parse(html(), url());
             return doc;
         } catch (Exception ex) {
@@ -265,21 +237,12 @@ public class Page {
     public void setDoc(Document doc) {
         this.doc = doc;
     }
-    
+
     public HttpCrawResponse response() {
         return response;
     }
 
     public void response(HttpCrawResponse response) {
-        this.response = response;
-    }
-    @Deprecated
-    public HttpCrawResponse getResponse() {
-        return response;
-    }
-
-    @Deprecated
-    public void setResponse(HttpCrawResponse response) {
         this.response = response;
     }
 
@@ -291,11 +254,10 @@ public class Page {
         this.exception = exception;
     }
 
-    
     public CrawlDatum crawlDatum() {
         return crawlDatum;
     }
-    
+
     public void crawlDatum(CrawlDatum crawlDatum) {
         this.crawlDatum = crawlDatum;
     }
@@ -304,19 +266,27 @@ public class Page {
         this.crawlDatum.meta(key, value);
     }
 
-    public Object meta(String key) {
-        return this.crawlDatum.meta(key);
+    public String meta(String key) {
+        return String.valueOf(this.crawlDatum.meta(key));
     }
-    
+
+    public String charset() {
+        if (charset == null) {
+            charset = CharsetDetector.guessEncoding(content());
+        }
+        return charset;
+    }
+
+    public void charset(String charset) {
+        this.charset = charset;
+    }
+
     public String key(){
         return crawlDatum.key();
     }
-    
+
     public int code() {
         return response.code();
     }
-
-
-
 
 }

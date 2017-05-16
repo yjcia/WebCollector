@@ -13,6 +13,7 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -26,7 +27,7 @@ public class AmazonTask extends BreadthCrawler {
 
     private static final Logger LOG = Logger.getLogger(AmazonTask.class);
     private static Map<String, String> headerMap;
-
+    private boolean needAutoProxy = false;
     static {
         headerMap = new HashMap<String, String>();
         headerMap.put("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
@@ -58,11 +59,11 @@ public class AmazonTask extends BreadthCrawler {
      */
     public void taskRun() {
         try {
+
             Date batchTime = new Date();
             List<CrawlerKeyWordsInfo> crawlerKeyWordsInfoList =
                     commonService.findKeywordInfoList(CrawlerAttribute.AMAZON_CUST_ACCOUNT_ID, CrawlerAttribute.PLATFORM_AMAZON);
             for (CrawlerKeyWordsInfo keyWordsInfo : crawlerKeyWordsInfoList) {
-                String proxyIp = "";
                 Map<String, Object> paramMap = new HashMap<String, Object>();
                 String url = CrawlerAttribute.AMAZON_DE_URL + keyWordsInfo.getCustkeywordName() + "/";
                 String key = CrawlerAttribute.AMAZON_TASK + "_" + url;
@@ -70,7 +71,7 @@ public class AmazonTask extends BreadthCrawler {
                 paramMap.put(CrawlerAttribute.CUST_KEY_WORD_ID, keyWordsInfo.getCustKeywordId());
                 paramMap.put(CrawlerAttribute.GOODS_URL, url);
                 paramMap.put(CrawlerAttribute.BATCH_TIME, batchTime);
-                addSeed(url, key, proxyIp, paramMap);
+                addSeed(url, key, needAutoProxy,paramMap);
             }
             setExecuteInterval(1000);
             setThreads(10);
@@ -100,8 +101,7 @@ public class AmazonTask extends BreadthCrawler {
             dbManager.setCrawlPath(databaseName);
             super.initCrawler(databaseName, false, dbManager, headerMap);
             for (CrawlDatum crawlDatum : crawlDatumList) {
-                String proxyIp = "";
-                addSeed(crawlDatum.url(), crawlDatum.key(), proxyIp, crawlDatum.getMetaData());
+                addSeed(crawlDatum.url(), crawlDatum.key(),needAutoProxy,crawlDatum.getMetaData());
 
             }
             setExecuteInterval(1000);
@@ -115,11 +115,12 @@ public class AmazonTask extends BreadthCrawler {
     }
 
     public void visit(Page page, CrawlDatums next) {
-        LOG.info("find url : " + page.url());
-        //假设爬取失败
-        if (page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")) {
-            page.crawlDatum().setCrawlSuccess(false);
-        }
+        LOG.info("find url : " + page.url() + " " + page.select("span[id=productTitle]").text());
+//        if (page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")) {
+//            page.crawlDatum().setCrawlSuccess(false);
+//        }
+
+
     }
 
 }

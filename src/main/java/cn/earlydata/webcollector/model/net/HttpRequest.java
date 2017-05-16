@@ -21,6 +21,10 @@ import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.common.ConfigAttribute;
 import cn.earlydata.webcollector.util.PropertiesUtil;
+import com.virjar.dungproxy.client.ippool.IpPool;
+import com.virjar.dungproxy.client.model.AvProxy;
+import com.virjar.dungproxy.client.util.CommonUtil;
+import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
 import org.apache.log4j.pattern.IntegerPatternConverter;
 
@@ -29,6 +33,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.ArrayList;
@@ -50,13 +55,14 @@ public class HttpRequest {
     protected int MAX_RECEIVE_SIZE = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_RECEIVE_SIZE));
     protected int timeoutForConnect = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_CONNECT));
     protected int timeoutForRead = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_READ));
-    protected byte[] outputData=null;
+    protected byte[] outputData = null;
     protected boolean doinput = true;
     protected boolean dooutput = true;
     protected boolean followRedirects = false;
     protected Proxy proxy = null;
     protected Map<String, String> headerMap = null;
     protected CrawlDatum crawlDatum = null;
+    protected IpPool ipPool = IpPool.getInstance();
 
     static {
         TrustManager[] trustAllCerts = new TrustManager[]{
@@ -105,25 +111,33 @@ public class HttpRequest {
     }
 
     public HttpCrawResponse response() throws Exception {
-        URL url = new URL(crawlDatum.url());
+        String urlString = crawlDatum.url();
+        URL url = new URL(urlString);
         HttpCrawResponse response = new HttpCrawResponse(url);
         int code = -1;
         int maxRedirect = Math.max(0, MAX_REDIRECT);
         HttpURLConnection con = null;
         InputStream is = null;
+        AvProxy bind = null;
         try {
-
             for (int redirect = 0; redirect <= maxRedirect; redirect++) {
-                if (proxy == null) {
-                    con = (HttpURLConnection) url.openConnection();
-                } else {
+                if (proxy != null) {
                     con = (HttpURLConnection) url.openConnection(proxy);
+                } else {
+                    bind = ipPool.bind(CommonUtil.extractDomain(urlString), urlString);
+                    if (bind != null && crawlDatum.isNeedAutoProxy()) {
+                        bind.recordUsage();
+                        con = (HttpURLConnection) url.openConnection(
+                                new Proxy(Proxy.Type.HTTP, new InetSocketAddress(bind.getIp(), bind.getPort())));
+                    } else {
+                        con = (HttpURLConnection) url.openConnection();
+                    }
                 }
 
                 config(con);
-                
-                if(outputData!=null){
-                    OutputStream os=con.getOutputStream();
+
+                if (outputData != null) {
+                    OutputStream os = con.getOutputStream();
                     os.write(outputData);
                     os.close();
                 }
@@ -133,15 +147,15 @@ public class HttpRequest {
                 if (redirect == 0) {
                     response.code(code);
                 }
-                
-                if(code==HttpURLConnection.HTTP_NOT_FOUND){
+
+                if (code == HttpURLConnection.HTTP_NOT_FOUND) {
                     response.setNotFound(true);
                     return response;
                 }
 
                 boolean needBreak = false;
                 switch (code) {
-                        
+
                     case HttpURLConnection.HTTP_MOVED_PERM:
                     case HttpURLConnection.HTTP_MOVED_TEMP:
                         response.setRedirect(true);
@@ -197,11 +211,12 @@ public class HttpRequest {
 
             return response;
         } catch (Exception ex) {
+            if (bind != null) {
+                bind.recordFailed();// 当前不判断那种类型异常导致下线
+            }
             throw ex;
         } finally {
-            if (is != null) {
-                is.close();
-            }
+            IOUtils.closeQuietly(is);
         }
     }
 
@@ -228,7 +243,7 @@ public class HttpRequest {
     }
 
     public void setMethod(String method) {
-        this.method=method;
+        this.method = method;
     }
 
     public CrawlDatum getCrawlDatum() {
@@ -347,9 +362,8 @@ public class HttpRequest {
 
     public void setOutputData(byte[] outputData) {
         this.outputData = outputData;
-        this.dooutput=true;
+        this.dooutput = true;
     }
-    
-    
+
 
 }

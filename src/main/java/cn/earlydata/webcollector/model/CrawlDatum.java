@@ -33,6 +33,7 @@ public class CrawlDatum implements Serializable {
     private int status = STATUS_DB_UNEXECUTED;
     private int executeCount = 0;
     private String proxyIp;
+    private boolean needAutoProxy;
     public final static int STATUS_DB_UNEXECUTED = 0;
     public final static int STATUS_DB_FAILED = 1;
     public final static int STATUS_DB_SUCCESS = 5;
@@ -185,6 +186,14 @@ public class CrawlDatum implements Serializable {
 
     public void setProxyIp(String proxyIp) {
         this.proxyIp = proxyIp;
+    }
+
+    public boolean isNeedAutoProxy() {
+        return needAutoProxy;
+    }
+
+    public void setNeedAutoProxy(boolean needAutoProxy) {
+        this.needAutoProxy = needAutoProxy;
     }
 
     @Override

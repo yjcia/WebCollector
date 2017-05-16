@@ -234,6 +234,11 @@
             <version>20140107</version>
         </dependency>
         <dependency>
+            <groupId>com.virjar</groupId>
+            <artifactId>dungproxy-client</artifactId>
+            <version>0.0.5</version>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.10</version>
