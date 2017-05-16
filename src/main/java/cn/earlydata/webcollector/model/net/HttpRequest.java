@@ -19,8 +19,10 @@ package cn.earlydata.webcollector.model.net;
 
 import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.model.CrawlDatum;
-import cn.earlydata.webcollector.common.Config;
+import cn.earlydata.webcollector.common.ConfigAttribute;
+import cn.earlydata.webcollector.util.PropertiesUtil;
 import org.apache.log4j.Logger;
+import org.apache.log4j.pattern.IntegerPatternConverter;
 
 
 import java.io.ByteArrayOutputStream;
@@ -44,14 +46,14 @@ public class HttpRequest {
 
     public static final Logger LOG = Logger.getLogger(HttpRequest.class);
 
-    protected int MAX_REDIRECT = Config.MAX_REDIRECT;
-    protected int MAX_RECEIVE_SIZE = Config.MAX_RECEIVE_SIZE;
-    protected String method = Config.DEFAULT_HTTP_METHOD;
+    protected int MAX_REDIRECT = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_REDIRECT));
+    protected int MAX_RECEIVE_SIZE = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_RECEIVE_SIZE));
+    protected String method = PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.DEFAULT_HTTP_METHOD);
     protected boolean doinput = true;
     protected boolean dooutput = true;
     protected boolean followRedirects = false;
-    protected int timeoutForConnect = Config.TIMEOUT_CONNECT;
-    protected int timeoutForRead = Config.TIMEOUT_READ;
+    protected int timeoutForConnect = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_CONNECT));
+    protected int timeoutForRead = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_READ));
     protected byte[] outputData=null;
     Proxy proxy = null;
 

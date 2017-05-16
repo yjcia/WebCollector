@@ -6,7 +6,7 @@ import cn.earlydata.webcollector.core.framework.Generator;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.util.CrawlDatumFormater;
-import cn.earlydata.webcollector.util.FileUtils;
+import cn.earlydata.webcollector.util.FileUtil;
 import com.sleepycat.je.*;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
@@ -316,14 +316,14 @@ public class BerkeleyDBManager implements DBManager {
     public void clear() {
         File dir = new File(crawlPath);
         if (dir.exists()) {
-            FileUtils.deleteDir(dir);
+            FileUtil.deleteDir(dir);
         }
     }
 
     public void clear(String databaseName) {
         File dir = new File(databaseName);
         if (dir.exists()) {
-            FileUtils.deleteDir(dir);
+            FileUtil.deleteDir(dir);
         }
     }
 

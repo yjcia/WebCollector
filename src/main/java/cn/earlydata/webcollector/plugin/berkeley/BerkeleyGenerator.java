@@ -19,7 +19,8 @@ package cn.earlydata.webcollector.plugin.berkeley;
 
 import cn.earlydata.webcollector.core.framework.Generator;
 import cn.earlydata.webcollector.model.CrawlDatum;
-import cn.earlydata.webcollector.common.Config;
+import cn.earlydata.webcollector.common.ConfigAttribute;
+import cn.earlydata.webcollector.util.PropertiesUtil;
 import com.sleepycat.je.Cursor;
 import com.sleepycat.je.CursorConfig;
 import com.sleepycat.je.Database;
@@ -40,7 +41,7 @@ public class BerkeleyGenerator implements Generator {
     private Environment env = null;
     protected int totalGenerate = 0;
     protected int topN = -1;
-    protected int maxExecuteCount = Config.MAX_EXECUTE_COUNT;
+    protected int maxExecuteCount = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_EXECUTE_COUNT));
     protected DatabaseEntry key = new DatabaseEntry();
     protected DatabaseEntry value = new DatabaseEntry();
 

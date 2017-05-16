@@ -25,8 +25,10 @@ import cn.earlydata.webcollector.core.framework.Generator;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.model.Links;
-import cn.earlydata.webcollector.common.Config;
+import cn.earlydata.webcollector.common.ConfigAttribute;
+import cn.earlydata.webcollector.util.PropertiesUtil;
 import org.apache.log4j.Logger;
+import org.apache.log4j.pattern.IntegerPatternConverter;
 
 
 import java.util.Map;
@@ -102,7 +104,8 @@ public class Crawler {
         if (maxExecuteCount >= 0) {
             generator.setMaxExecuteCount(maxExecuteCount);
         } else {
-            generator.setMaxExecuteCount(Config.MAX_EXECUTE_COUNT);
+            generator.setMaxExecuteCount(Integer.parseInt(
+                    PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.MAX_EXECUTE_COUNT)));
         }
         generator.setTopN(topN);
         status = RUNNING;

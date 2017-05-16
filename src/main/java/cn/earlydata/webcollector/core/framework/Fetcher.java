@@ -17,10 +17,10 @@
  */
 package cn.earlydata.webcollector.core.framework;
 
-import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
-import cn.earlydata.webcollector.common.Config;
+import cn.earlydata.webcollector.common.ConfigAttribute;
+import cn.earlydata.webcollector.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 
@@ -272,7 +272,8 @@ public class Fetcher {
                     fetchQueue.dump();
                 }
 
-                if ((System.currentTimeMillis() - lastRequestStart.get()) > Config.THREAD_KILLER) {
+                if ((System.currentTimeMillis() - lastRequestStart.get()) >
+                        Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.THREAD_KILLER))) {
                     LOG.info("Aborting with " + activeThreads + " hung threads.");
                     break;
                 }
@@ -290,7 +291,7 @@ public class Fetcher {
                     Thread.sleep(500);
                 } catch (Exception ex) {
                 }
-                if (System.currentTimeMillis() - waitThreadEndStartTime > Config.WAIT_THREAD_END_TIME) {
+                if (System.currentTimeMillis() - waitThreadEndStartTime > Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.WAIT_THREAD_END_TIME))) {
                     LOG.info("kill threads");
                     FetcherThread[] runnableArr = (FetcherThread[]) runnableArrayList.toArray();
                     for (int i = 0; i < runnableArr.length; i++) {

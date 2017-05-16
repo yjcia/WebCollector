@@ -18,17 +18,18 @@
 package cn.earlydata.webcollector.common;
 
 /**
- * 全局配置
+ * 参数配置
  */
-public class Config {
+public class ConfigAttribute {
 
-    public static int MAX_RECEIVE_SIZE = 1000 * 1000;
-    public static long THREAD_KILLER = 1000 * 60 * 2;
-    public static long WAIT_THREAD_END_TIME = 1000 * 60;
-    public static int MAX_REDIRECT = 2;
-    public static int TIMEOUT_CONNECT = 3000;
-    public static int TIMEOUT_READ = 10000;
-    public static int MAX_EXECUTE_COUNT = 10;
-    public static String DEFAULT_HTTP_METHOD = "GET";
+    public static String MAX_RECEIVE_SIZE = "max_receive_size";
+    public static String THREAD_KILLER = "thread_killer";
+    public static String WAIT_THREAD_END_TIME = "wait_thread_end_time";
+    public static String MAX_REDIRECT = "max_redirect";
+    public static String TIMEOUT_CONNECT = "timeout_connect";
+    public static String TIMEOUT_READ = "timeout_read";
+    public static String MAX_EXECUTE_COUNT = "max_execute_count";
+    public static String DEFAULT_HTTP_METHOD = "default_http_method";
+    public static String RETRY_TIMES = "retry_times";
 
 }

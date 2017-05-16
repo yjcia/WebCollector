@@ -24,7 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
-public class FileUtils {
+public class FileUtil {
 
     public static void deleteDir(File dir) {
         File[] filelist = dir.listFiles();
