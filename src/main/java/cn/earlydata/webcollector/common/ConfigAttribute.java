@@ -22,15 +22,17 @@ package cn.earlydata.webcollector.common;
  */
 public class ConfigAttribute {
 
-    public static String MAX_RECEIVE_SIZE = "max_receive_size";
-    public static String THREAD_KILLER = "thread_killer";
-    public static String WAIT_THREAD_END_TIME = "wait_thread_end_time";
-    public static String MAX_REDIRECT = "max_redirect";
-    public static String TIMEOUT_CONNECT = "timeout_connect";
-    public static String TIMEOUT_READ = "timeout_read";
-    public static String MAX_EXECUTE_COUNT = "max_execute_count";
-    public static String DEFAULT_HTTP_METHOD = "default_http_method";
-    public static String RETRY_TIMES = "retry_times";
-    public static String AUTO_PROXY = "auto_proxy";
+    public static final String MAX_RECEIVE_SIZE = "max_receive_size";
+    public static final String THREAD_KILLER = "thread_killer";
+    public static final String WAIT_THREAD_END_TIME = "wait_thread_end_time";
+    public static final String MAX_REDIRECT = "max_redirect";
+    public static final String TIMEOUT_CONNECT = "timeout_connect";
+    public static final String TIMEOUT_READ = "timeout_read";
+    public static final String MAX_EXECUTE_COUNT = "max_execute_count";
+    public static final String DEFAULT_HTTP_METHOD = "default_http_method";
+    public static final String RETRY_TIMES = "retry_times";
+    public static final String AUTO_PROXY = "auto_proxy";
+    public static final String THREAD_COUNT = "thread_count";
+    public static final String EXECUTE_INTERVAL = "execute_interval";
 
 }

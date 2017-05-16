@@ -1,5 +1,6 @@
 package cn.earlydata.webcollector.task;
 
+import cn.earlydata.webcollector.common.ConfigAttribute;
 import cn.earlydata.webcollector.common.CrawlerAttribute;
 import cn.earlydata.webcollector.core.spring.ApplicationContextHolder;
 import cn.earlydata.webcollector.model.CrawlDatum;
@@ -9,6 +10,7 @@ import cn.earlydata.webcollector.model.Page;
 import cn.earlydata.webcollector.core.crawler.BreadthCrawler;
 import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
 import cn.earlydata.webcollector.service.CommonService;
+import cn.earlydata.webcollector.util.PropertiesUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -27,6 +29,8 @@ public class AmazonTask extends BreadthCrawler {
 
     private static final Logger LOG = Logger.getLogger(AmazonTask.class);
     private static Map<String, String> headerMap;
+    private static int threadsCount;
+    private static int executeInterval;
     static {
         headerMap = new HashMap<String, String>();
         headerMap.put("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
@@ -35,6 +39,8 @@ public class AmazonTask extends BreadthCrawler {
         headerMap.put("Accept-Encoding", "gzip, deflate");
         headerMap.put("Accept-Language", "zh-cn,zh;q=0.5");
         headerMap.put("Connection", "keep-alive");
+        threadsCount = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.THREAD_COUNT));
+        executeInterval = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.EXECUTE_INTERVAL));
     }
 
     @Autowired
@@ -72,8 +78,8 @@ public class AmazonTask extends BreadthCrawler {
                 paramMap.put(CrawlerAttribute.BATCH_TIME, batchTime);
                 addSeed(url, key,paramMap);
             }
-            setExecuteInterval(1000);
-            setThreads(2);
+            setExecuteInterval(executeInterval);
+            setThreads(threadsCount);
             /**
              * true表示支持断点爬取
              * 如果第一次爬取成功CrawlDatum的status=1，这样
@@ -95,16 +101,14 @@ public class AmazonTask extends BreadthCrawler {
     public void taskRun(List<CrawlDatum> crawlDatumList, String databaseName) {
         try {
             BerkeleyDBManager dbManager = new BerkeleyDBManager();
-            //BerkeleyDBManager dbManager = ApplicationContextHolder.getBean(BerkeleyDBManager.class);
-            //dbManager.clear();
             dbManager.setCrawlPath(databaseName);
             super.initCrawler(databaseName, false, dbManager, headerMap);
             for (CrawlDatum crawlDatum : crawlDatumList) {
                 addSeed(crawlDatum.url(), crawlDatum.key(),crawlDatum.getMetaData());
 
             }
-            setExecuteInterval(1000);
-            setThreads(1);
+            setExecuteInterval(executeInterval);
+            setThreads(threadsCount);
             setResumable(false);
             setCrawlerTaskName(CrawlerAttribute.AMAZON_TASK);
             start(1);
@@ -113,11 +117,14 @@ public class AmazonTask extends BreadthCrawler {
         }
     }
 
+    /**
+     * 具体业务实现
+     * @param page
+     * @param next
+     */
     public void visit(Page page, CrawlDatums next) {
         LOG.info("find url : " + page.url() + " title: " + page.select("span[id=productTitle]").text());
-//        if (page.url().equals("https://www.amazon.de/dp/B002EX4VB0/")) {
-//            page.crawlDatum().setCrawlSuccess(false);
-//        }
+
 
 
     }
