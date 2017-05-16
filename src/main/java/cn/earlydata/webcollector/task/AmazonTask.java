@@ -1,6 +1,7 @@
 package cn.earlydata.webcollector.task;
 
 import cn.earlydata.webcollector.common.CrawlerAttribute;
+import cn.earlydata.webcollector.core.spring.ApplicationContextHolder;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 import cn.earlydata.webcollector.model.CrawlerKeyWordsInfo;
@@ -24,10 +25,19 @@ import java.util.Map;
 public class AmazonTask extends BreadthCrawler{
 
     private static final Logger LOG = Logger.getLogger(AmazonTask.class);
+    private static Map<String,String> headerMap;
+    static{
+        headerMap = new HashMap<String,String>();
+        headerMap.put("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
+        headerMap.put("Accept", "Accept text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+        headerMap.put("Accept-Charset", "GB2312,utf-8;q=0.7,*;q=0.7");
+        headerMap.put("Accept-Encoding", "gzip, deflate");
+        headerMap.put("Accept-Language", "zh-cn,zh;q=0.5");
+        headerMap.put("Connection", "keep-alive");
+    }
 
     @Autowired
     private CommonService commonService;
-
 
     public AmazonTask() {}
 
@@ -37,7 +47,7 @@ public class AmazonTask extends BreadthCrawler{
      * @param autoParse
      */
     public void taskInit(String crawlPath, boolean autoParse) {
-        super.initCrawler(crawlPath, autoParse);
+        super.initCrawler(crawlPath, autoParse,headerMap);
     }
 
     /**
@@ -57,7 +67,6 @@ public class AmazonTask extends BreadthCrawler{
                 paramMap.put(CrawlerAttribute.GOODS_URL, url);
                 paramMap.put(CrawlerAttribute.BATCH_TIME,batchTime);
                 addSeed(url,key,paramMap);
-                //break;
             }
             setExecuteInterval(1000);
             setThreads(10);
@@ -81,8 +90,11 @@ public class AmazonTask extends BreadthCrawler{
      */
     public void taskRun(List<CrawlDatum> crawlDatumList,String databaseName){
         try {
-            BerkeleyDBManager dbManager = new BerkeleyDBManager(databaseName);
-            super.initCrawler(databaseName,false,dbManager);
+            BerkeleyDBManager dbManager = new BerkeleyDBManager();
+            //BerkeleyDBManager dbManager = ApplicationContextHolder.getBean(BerkeleyDBManager.class);
+            //dbManager.clear();
+            dbManager.setCrawlPath(databaseName);
+            super.initCrawler(databaseName,false,dbManager,headerMap);
             for(CrawlDatum crawlDatum:crawlDatumList){
                 addSeed(crawlDatum.url(),crawlDatum.key(),crawlDatum.getMetaData());
             }

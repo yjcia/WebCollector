@@ -21,13 +21,7 @@ import cn.earlydata.webcollector.core.framework.Generator;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.common.ConfigAttribute;
 import cn.earlydata.webcollector.util.PropertiesUtil;
-import com.sleepycat.je.Cursor;
-import com.sleepycat.je.CursorConfig;
-import com.sleepycat.je.Database;
-import com.sleepycat.je.DatabaseEntry;
-import com.sleepycat.je.Environment;
-import com.sleepycat.je.LockMode;
-import com.sleepycat.je.OperationStatus;
+import com.sleepycat.je.*;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Component;
 

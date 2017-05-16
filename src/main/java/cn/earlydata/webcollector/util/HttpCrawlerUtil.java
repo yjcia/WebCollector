@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -35,6 +36,7 @@ public class HttpCrawlerUtil {
     private static Logger log = Logger.getLogger(HttpCrawlerUtil.class);
     private static PoolingHttpClientConnectionManager connManager;
     private static final int TIMEOUT_VALUE = 70000;
+    private static Map<String,String> headerMap;
     /**
      * SSL处理
      * @return
@@ -69,8 +71,9 @@ public class HttpCrawlerUtil {
      * @throws KeyManagementException
      * @throws NoSuchAlgorithmException
      */
-    public static void init()
+    public static void init(Map<String,String> paramHeaderMap)
     {
+        headerMap = paramHeaderMap;
         SSLContext sslcontext = null;
         try {
             sslcontext = HttpCrawlerUtil.createIgnoreVerifySSL();
@@ -119,12 +122,9 @@ public class HttpCrawlerUtil {
 
         RequestConfig config = RequestConfig.copy(defaultRequestConfig).build();
         httpGet.setConfig(config);
-        httpGet.setHeader("User-Agent", CrawlerAttribute.DEFAULT_USER_AGENT);
-        httpGet.setHeader("Accept", "*/*");
-        httpGet.setHeader("Accept-Charset", "GB2312,utf-8;q=0.7,*;q=0.7");
-        httpGet.setHeader("Accept-Encoding", "gzip, deflate");
-        httpGet.setHeader("Accept-Language", "zh-cn,zh;q=0.5");
-        httpGet.setHeader("Connection", "keep-alive");
+        for(Map.Entry<String, String> entry : headerMap.entrySet()){
+            httpGet.setHeader(entry.getKey(), entry.getValue());
+        }
         return httpGet;
     }
     /**

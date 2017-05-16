@@ -33,6 +33,8 @@ import org.apache.http.HttpResponse;
 import org.apache.log4j.Logger;
 import org.jsoup.nodes.Document;
 
+import java.util.Map;
+
 public abstract class AutoParseCrawler extends Crawler implements Executor, Visitor, Requester {
 
     public static final Logger LOG = Logger.getLogger(AutoParseCrawler.class);
@@ -42,15 +44,16 @@ public abstract class AutoParseCrawler extends Crawler implements Executor, Visi
     protected Visitor visitor;
     protected Requester requester;
     protected RegexRule regexRule = new RegexRule();
-
+    protected Map<String,String> headerMap;
     public AutoParseCrawler() {
     }
 
-    public void initCrawler(boolean autoParse) {
+    public void initCrawler(boolean autoParse,Map<String,String> headerMap) {
         this.autoParse = autoParse;
         this.visitor = this;
         this.requester = this;
         this.executor = this;
+        this.headerMap = headerMap;
     }
 
     /**
@@ -71,15 +74,15 @@ public abstract class AutoParseCrawler extends Crawler implements Executor, Visi
      * @return
      * @throws Exception
      */
-    public HttpResponse getHttpResponse(CrawlDatum crawlDatum) throws Exception {
-        HttpCrawlerUtil.init();
+    public HttpResponse getHttpResponse(CrawlDatum crawlDatum,Map<String,String> headerMap) throws Exception {
+        HttpCrawlerUtil.init(headerMap);
         return HttpCrawlerUtil.getHttpResponse(HttpCrawlerUtil.getConnection(), crawlDatum.url());
     }
 
     public void execute(CrawlDatum datum, CrawlDatums next) throws Exception {
         long sleepTime = 2000L;
         Thread.sleep(sleepTime);
-        HttpResponse response = requester.getHttpResponse(datum);
+        HttpResponse response = requester.getHttpResponse(datum,headerMap);
         Page page = new Page(datum, response);
         visitor.visit(page, next);
         if (autoParse && !regexRule.isEmpty()) {

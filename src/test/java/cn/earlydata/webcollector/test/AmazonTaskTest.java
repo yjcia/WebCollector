@@ -30,11 +30,9 @@ public class AmazonTaskTest {
             amazonTask.taskInit("crawlPath",false);
             amazonTask.taskRun();
             System.out.println("-----" + berkeleyDBManager);
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
     @Test

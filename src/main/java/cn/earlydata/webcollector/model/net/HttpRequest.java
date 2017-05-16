@@ -55,11 +55,35 @@ public class HttpRequest {
     protected int timeoutForConnect = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_CONNECT));
     protected int timeoutForRead = Integer.parseInt(PropertiesUtil.getCrawlerConfigValue(ConfigAttribute.TIMEOUT_READ));
     protected byte[] outputData=null;
-    Proxy proxy = null;
-
+    protected Proxy proxy = null;
     protected Map<String, List<String>> headerMap = null;
-
     protected CrawlDatum crawlDatum = null;
+
+    static {
+        TrustManager[] trustAllCerts = new TrustManager[]{
+                new X509TrustManager() {
+                    public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+
+                    public void checkClientTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+
+                    public void checkServerTrusted(
+                            java.security.cert.X509Certificate[] certs, String authType) {
+                    }
+                }
+        };
+
+        try {
+            SSLContext sc = SSLContext.getInstance("SSL");
+            sc.init(null, trustAllCerts, new java.security.SecureRandom());
+            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        } catch (Exception ex) {
+            LOG.info("Exception", ex);
+        }
+    }
 
     public HttpRequest(String url) throws Exception {
         this.crawlDatum = new CrawlDatum(url);
@@ -185,12 +209,9 @@ public class HttpRequest {
     public void config(HttpURLConnection con) throws Exception {
 
         con.setRequestMethod(method);
-
         con.setInstanceFollowRedirects(followRedirects);
-
         con.setDoInput(doinput);
         con.setDoOutput(dooutput);
-
         con.setConnectTimeout(timeoutForConnect);
         con.setReadTimeout(timeoutForRead);
 
@@ -219,32 +240,6 @@ public class HttpRequest {
 
     public void setCrawlDatum(CrawlDatum crawlDatum) {
         this.crawlDatum = crawlDatum;
-    }
-
-    static {
-        TrustManager[] trustAllCerts = new TrustManager[]{
-            new X509TrustManager() {
-                public java.security.cert.X509Certificate[] getAcceptedIssuers() {
-                    return null;
-                }
-
-                public void checkClientTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-
-                public void checkServerTrusted(
-                        java.security.cert.X509Certificate[] certs, String authType) {
-                }
-            }
-        };
-
-        try {
-            SSLContext sc = SSLContext.getInstance("SSL");
-            sc.init(null, trustAllCerts, new java.security.SecureRandom());
-            HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
-        } catch (Exception ex) {
-            LOG.info("Exception", ex);
-        }
     }
 
     private void initHeaderMap() {
@@ -299,24 +294,6 @@ public class HttpRequest {
         valueList.add(value);
         headerMap.put(key, valueList);
     }
-
-    public int getMAX_REDIRECT() {
-        return MAX_REDIRECT;
-    }
-
-    public void setMAX_REDIRECT(int MAX_REDIRECT) {
-        this.MAX_REDIRECT = MAX_REDIRECT;
-    }
-
-    public int getMAX_RECEIVE_SIZE() {
-        return MAX_RECEIVE_SIZE;
-    }
-
-    public void setMAX_RECEIVE_SIZE(int MAX_RECEIVE_SIZE) {
-        this.MAX_RECEIVE_SIZE = MAX_RECEIVE_SIZE;
-    }
-
-   
 
     public Map<String, List<String>> getHeaders() {
         return headerMap;

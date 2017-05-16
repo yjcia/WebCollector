@@ -20,6 +20,8 @@ package cn.earlydata.webcollector.core.framework;
 import cn.earlydata.webcollector.model.CrawlDatum;
 import cn.earlydata.webcollector.model.CrawlDatums;
 
+import java.util.Map;
+
 public interface Executor {
     public void execute(CrawlDatum datum, CrawlDatums next) throws Exception;
 }

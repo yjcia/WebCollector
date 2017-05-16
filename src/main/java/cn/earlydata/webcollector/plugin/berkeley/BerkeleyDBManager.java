@@ -255,15 +255,10 @@ public class BerkeleyDBManager implements DBManager {
 
     public boolean deleteFromDatabase(String key, String databaseName) {
         boolean success = false;
-        Transaction txn = null;
         try {
             Database database = env.openDatabase(null, databaseName, defaultDBConfig);
-            TransactionConfig txConfig = new TransactionConfig();
-            txConfig.setSerializableIsolation(true);
-            txn = env.beginTransaction(null, txConfig);
             DatabaseEntry theKey = new DatabaseEntry(key.getBytes(CrawlerAttribute.UTF8));
-            OperationStatus res = database.delete(txn, theKey);
-            txn.commit();
+            OperationStatus res = database.delete(null, theKey);
             if (res == OperationStatus.SUCCESS) {
                 LOG.info("Database " + database.getDatabaseName() + " delete: " + key);
                 success = true;
@@ -279,14 +274,8 @@ public class BerkeleyDBManager implements DBManager {
             return false;
         } catch (LockConflictException lockConflict) {
             LOG.error(lockConflict.getLocalizedMessage());
-
-
         } finally {
-            if (!success) {
-                if (txn != null) {
-                    txn.abort();
-                }
-            }
+
         }
         return false;
     }

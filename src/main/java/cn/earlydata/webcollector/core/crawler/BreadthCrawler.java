@@ -22,6 +22,7 @@ import cn.earlydata.webcollector.plugin.berkeley.BerkeleyDBManager;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Map;
 
 /**
  * BreadthCrawler是基于Berkeley DB的插件,于2.20版重新设计
@@ -49,14 +50,15 @@ public abstract class BreadthCrawler extends AutoParseCrawler {
      * @param crawlPath 伯克利DB使用的文件夹
      * @param autoParse 是否根据设置的正则自动探测新URL
      */
-    public void initCrawler(String crawlPath, boolean autoParse){
-        super.initCrawler(autoParse);
+    public void initCrawler(String crawlPath, boolean autoParse,Map<String,String> headerMap){
+        super.initCrawler(autoParse,headerMap);
         berkeleyDBManager.setCrawlPath(crawlPath);
         this.dbManager = berkeleyDBManager;
     }
 
-    public void initCrawler(String crawlPath, boolean autoParse, BerkeleyDBManager berkeleyDBManager){
-        super.initCrawler(autoParse);
+    public void initCrawler(String crawlPath, boolean autoParse, BerkeleyDBManager berkeleyDBManager,
+                            Map<String,String> headerMap){
+        super.initCrawler(autoParse,headerMap);
         berkeleyDBManager.setCrawlPath(crawlPath);
         this.dbManager = berkeleyDBManager;
     }
