@@ -26,7 +26,6 @@ import com.virjar.dungproxy.client.model.AvProxy;
 import com.virjar.dungproxy.client.util.CommonUtil;
 import org.apache.commons.io.IOUtils;
 import org.apache.log4j.Logger;
-import org.apache.log4j.pattern.IntegerPatternConverter;
 
 
 import java.io.ByteArrayOutputStream;
