@@ -124,9 +124,6 @@ public class AmazonTask extends BreadthCrawler {
      */
     public void visit(Page page, CrawlDatums next) {
         LOG.info("find url : " + page.url() + " title: " + page.select("span[id=productTitle]").text());
-
-
-
     }
 
 }
